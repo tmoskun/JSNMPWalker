@@ -1,60 +1,45 @@
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+/**
+ * Copyright(c) 2012-2013 
+ * @author tmoskun, ezcode (Zlatco)
+ * This Software is distributed under MIT license
+ */
 
 import org.snmp4j.PDU;
 import org.snmp4j.smi.Address;
 
 
-public class Writer {
-
-	private BufferedWriter out;
-
-	private static long startTime;
+public class SNMPFormatter {
 	
-	public Writer(String filename) throws IOException
-	{
-		startTime = System.currentTimeMillis();
-
-		FileWriter fstream = new FileWriter(filename);
-		out = new BufferedWriter(fstream);
-		writeLine(getHeader());
+	private static long _startTime;
+	
+	public SNMPFormatter() {
+		restart();
+	}
+	
+	public static void restart() {
+		_startTime = System.currentTimeMillis();
 	}
 	
 	public static long getElapsedTime() {
-		return System.currentTimeMillis()-startTime;
+		return System.currentTimeMillis()-_startTime;
 	}
 	
-	public void close() {
-		try {
-			out.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public String writeLine(String text) {
+		return text+'\n';
 	}
 	
-	public void write(String text) {
-		try {
-			out.write(text);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	public void writeLine(String text) {
-		write(text+'\n');
-	}
-	
-	public void writePDU(Address session, PDU pdu)
+	public String writePDU(Address session, PDU pdu)
 	{
-		writeLine(pduToString(session,pdu, getElapsedTime()));
+		return writeLine(pduToString(session,pdu, getElapsedTime()));
 	}
 	
-	public void writePDU(Address session, PDU pdu, long elapsedTime)
+	public String writePDU(Address session, PDU pdu, long elapsedTime)
 	{
-		writeLine(pduToString(session,pdu, elapsedTime));
+		return writeLine(pduToString(session,pdu, elapsedTime));
+	}
+	
+	public String writeHeader() {
+		return writeLine(getHeader());
 	}
 	
 	public String getHeader() {
@@ -90,5 +75,5 @@ public class Writer {
 	    }
 	    return buf.toString();
 	}
-	
+
 }
