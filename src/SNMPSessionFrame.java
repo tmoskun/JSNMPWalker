@@ -796,9 +796,12 @@ public abstract class SNMPSessionFrame extends JFrame implements ClipboardOwner 
 	}
 
 	private void copyData() {
-		Set<TreePath> paths = new HashSet<TreePath>();
-		Collections.addAll(paths, _tree.getSelectionPaths());
-		copyData(paths);
+		Set<TreePath> newpaths = new HashSet<TreePath>();
+		TreePath[] paths = _tree.getSelectionPaths();
+		if(paths != null && paths.length > 0) {
+			Collections.addAll(newpaths, paths);
+			copyData(newpaths);
+		}
 		
 	}
 	
@@ -830,31 +833,42 @@ public abstract class SNMPSessionFrame extends JFrame implements ClipboardOwner 
 	
 	private void pasteData() {
 		TreePath[] paths = _tree.getSelectionPaths();
-		TreeNodeCommandStack.Command paste = new PasteCommand(paths);
-		_commandStack.add(paste);
+		if(paths != null && paths.length > 0) {
+			TreeNodeCommandStack.Command paste = new PasteCommand(paths);
+			_commandStack.add(paste);
+		}
 	}
 	
 	
 	private void insertData() {
 		TreePath[] paths = _tree.getSelectionPaths();
-		TreeNodeCommandStack.Command insert = new InsertCommand(paths, getClipboardContents().split("\\r?\\n"));
-		_commandStack.add(insert);
+		if(paths != null && paths.length > 0) {
+			TreeNodeCommandStack.Command insert = new InsertCommand(paths, getClipboardContents().split("\\r?\\n"));
+			_commandStack.add(insert);
+		}
 	}
 	
 	
 	private void cutNodes() {
 		TreePath[] paths = _tree.getSelectionPaths();
-		TreeNodeCommandStack.Command cut = new CutCommand(paths, _treeModel);
-		_commandStack.add(cut);
+		if(paths != null && paths.length > 0  && paths[0].getPathCount() > 1) {
+			int result = JOptionPane.showConfirmDialog(null, "Do you want to cut the node(s)?");
+			if(result == JOptionPane.YES_OPTION) {
+				TreeNodeCommandStack.Command cut = new CutCommand(paths, _treeModel);
+				_commandStack.add(cut);
+			}
+		}
 	}
 	
 	
 	private void removeNodes() {
-		int result = JOptionPane.showConfirmDialog(null, "Do you want to delete the node(s)?");
-		if(result == JOptionPane.YES_OPTION) {
-			TreePath[] paths = _tree.getSelectionPaths();
-			TreeNodeCommandStack.Command remove = new RemoveCommand(paths);
-			_commandStack.add(remove);
+		TreePath[] paths = _tree.getSelectionPaths();
+		if(paths != null && paths.length > 0 && paths[0].getPathCount() > 1) {
+			int result = JOptionPane.showConfirmDialog(null, "Do you want to delete the node(s)?");
+			if(result == JOptionPane.YES_OPTION) {
+				TreeNodeCommandStack.Command remove = new RemoveCommand(paths);
+				_commandStack.add(remove);
+			}
 		}
 	}
 	
@@ -1077,7 +1091,7 @@ public abstract class SNMPSessionFrame extends JFrame implements ClipboardOwner 
 	private class RemoveCommand implements TreeNodeCommandStack.Command {
 		
 		protected Map<TreePath, Map<Integer, TreeNode>> _pathMap;
-			
+					
 		public RemoveCommand(TreePath[] paths) {
 			//super(paths);
 			_pathMap = new Hashtable<TreePath, Map<Integer, TreeNode>>();
