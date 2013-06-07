@@ -9,7 +9,8 @@ The results might be saved into a file.
 Running
 -----
 Go to the downloaded directory. Type in command line:
-java -jar snmp4japp.jar
+
+> java -jar snmp4japp.jar
 
 
 Compiling the source
@@ -23,6 +24,7 @@ Please, include the snmp4j LICENSE into your project as well.
 Compatibility
 -------------
 snmp4j-2.2.1
+
 http://www.snmp4j.org/
 
 License
