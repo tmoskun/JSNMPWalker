@@ -1,21 +1,30 @@
-snmp4jTest
+snmp4jApplication
 ==========
 
-Sample Test Code for snmp4j
----------------------------
-This is sample code to test snmp4j functionality for simultaneously access 
-of multiple SNMP sessesion and to output the results into a file. 
+Description
+---------------
+This is a Swing application to run multiple SNMP sessions simultaneously. 
+The results might be saved into a file. 
 
-Usage
+Running
 -----
-Modify Snmp4jTest get() with IP addresses of computers to test.
-Pass in filename to write result to in arguments.
+Go to the downloaded directory. Type in command line:
+java -jar snmp4japp.jar
+
+
+Compiling the source
+--------------------
+Download the snmp4j library from http://www.snmp4j.org/html/download.html, "SNMP4J sources and library 2.2.1" or whatever the lastest library available). Include the library snmp4j/dist/snmp4j-2.2.1.jar into your Java Build Path. 
+
+For Eclipse, click Project -> Properties -> Java Build Path -> Libraries and add the .jar file. 
+
+Please, include the snmp4j LICENSE into your project as well. 
 
 Compatibility
 -------------
-snmp4j-2.1.0
+snmp4j-2.2.1
 http://www.snmp4j.org/
 
 License
 -------
-MIT License. Copyright 2012 Z Moskun.
+MIT License. Copyright 2012-2013 Zlatco zlatco@gmail.com, Tanya Moskun tanysmoskun@gmail.com.

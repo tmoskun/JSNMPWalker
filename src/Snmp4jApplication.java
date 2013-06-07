@@ -10,17 +10,18 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+//import org.apache.commons.cli.BasicParser;
+//import org.apache.commons.cli.CommandLine;
+//import org.apache.commons.cli.CommandLineParser;
+//import org.apache.commons.cli.Option;
+//import org.apache.commons.cli.Options;
+//import org.apache.commons.cli.ParseException;
 
 public class Snmp4jApplication extends SNMPSessionFrame {
 	private List<SwingWorker> _workers;
@@ -124,9 +125,10 @@ public class Snmp4jApplication extends SNMPSessionFrame {
 	}
 
 	public static void main(String args[]) {
-		final Options opts = new Options();
-		opts.addOption(new Option("debug", false, "Debug output"));
+		//final Options opts = new Options();
+		//opts.addOption(new Option("debug", false, "Debug output"));
 
+		/*
 		final CommandLineParser pars = new BasicParser();
 		CommandLine comm = null;
 		try {
@@ -137,6 +139,8 @@ public class Snmp4jApplication extends SNMPSessionFrame {
 		}
 
 		Snmp4jApplication app = new Snmp4jApplication(comm.hasOption("debug"));
+		*/
+		Snmp4jApplication app = new Snmp4jApplication(false);
 		app.init();
 		app.setVisible(true);
 	}
