@@ -57,7 +57,7 @@ In order to build the project, go to the project directory and type:
 
 The default command uses the default application name JSNMPWalker and a default version which is today's date. 
 To assign a different version, use the following command:
-> ant -Dbuild.version=<version_number>
+> ant -Dbuild.version=[version_number]
 
 Building in Eclipse with ant:
 
