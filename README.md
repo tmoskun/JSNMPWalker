@@ -20,7 +20,7 @@ Compiling the source
 
 Libraries:
 
-1. SNMP4j
+ 1. SNMP4j
 
 Download the snmp4j library from http://www.snmp4j.org/html/download.html, "SNMP4J sources and library 2.2.1" or whatever the lastest library available). 
 Include the library snmp4j/dist/snmp4j-2.2.1.jar into your Java Build Path. 
@@ -31,7 +31,7 @@ Please, include the snmp4j LICENSE into your project as well.
 
 SNMP4j is provided under an Apache 2.0 license. 
 
-2. Mibble
+ 2. Mibble
 
 Mibble is a MIB browser library written in Java, provided with the project. 
 Inlude the jar files from the folder lib/mibble-2.9.3/lib into your Java Build Path.
@@ -40,7 +40,7 @@ For Eclipse, click Project -> Properties -> Java Build Path -> Libraries and add
 
 Original Mibble was provided under a GPLv2 license which is allowed to be distributed under a later version of GPL. 
 
-3. CIDRUtils
+ 3. CIDRUtils
 
 Make sure to include the CIDR project folder into the build path. 
 
