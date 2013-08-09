@@ -49,7 +49,7 @@ public class DataPanel extends JPanel {
 		JSplitPane dataSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, _mibPane, _networkPane);
 		dataSplitPane.setBorder(null);
 		dataSplitPane.setOneTouchExpandable(true);
-		dataSplitPane.setDividerLocation(2*SNMPSessionFrame.HEIGHT/5);
+		dataSplitPane.setDividerLocation(SNMPSessionFrame.HEIGHT/3);
 		Dimension dataMinSize = new Dimension(200, 200);
 		_mibPane.setMinimumSize(dataMinSize);
 		_networkPane.setMinimumSize(dataMinSize);

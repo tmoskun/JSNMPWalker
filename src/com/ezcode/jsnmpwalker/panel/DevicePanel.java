@@ -29,6 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -96,8 +97,9 @@ public class DevicePanel extends JPanel {
 //				InetAddress.class.getSimpleName());
 		DragSource deviceDragSource = new DragSource();
 		deviceDragSource.createDefaultDragGestureRecognizer(_deviceList, DnDConstants.ACTION_COPY, new NetworkDeviceDragGestureListener(_deviceList));	
+		JScrollPane sp = new JScrollPane(deviceListPane);
 		
-		add(deviceListPane, BorderLayout.CENTER);
+		add(sp, BorderLayout.CENTER);
 		JPanel formPane = new JPanel(new BorderLayout());
 		
 		JPanel paramsPane = new JPanel(new GridLayout(0, 2, 10, 4));
