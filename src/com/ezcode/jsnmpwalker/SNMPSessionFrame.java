@@ -12,6 +12,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.FlowLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -34,6 +35,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -262,7 +264,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 		});
 		//set keystrokes for action buttons
 		_runSNMPButton.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0), "Run");
-		_runSNMPButton.getActionMap().put("Run", new ButtonAction(_runSNMPButton));
+		_runSNMPButton.getActionMap().put("Run", new ButtonAction(this, _runSNMPButton));
 		runp.add(_runSNMPButton);
 		
 		_cancelSNMPButton.addActionListener(new ActionListener() {
@@ -274,7 +276,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 			}			
 		});
 		_cancelSNMPButton.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0), "Cancel");
-		_cancelSNMPButton.getActionMap().put("Cancel", new ButtonAction(_cancelSNMPButton));
+		_cancelSNMPButton.getActionMap().put("Cancel", new ButtonAction(this, _cancelSNMPButton));
 		runp.add(_cancelSNMPButton);
 		
 		southPane.add(runp, BorderLayout.SOUTH);
@@ -357,7 +359,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 				if(mnemonic != null) {
 					butt.setMnemonic(mnemonic);
 					butt.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("pressed " + mnemonic), name);
-					butt.getActionMap().put(name, new ButtonAction(butt));
+					butt.getActionMap().put(name, new ButtonAction(dialog, butt));
 				}
 				Integer index = indexes.get(butt.getText());
 				if(index != null) {
@@ -537,12 +539,16 @@ public abstract class SNMPSessionFrame extends JFrame {
 */
 
 	private static class ButtonAction extends AbstractAction {
+		private Window _window;
 		private AbstractButton _butt;
-		public ButtonAction(AbstractButton butt) {
+		public ButtonAction(Window window, AbstractButton butt) {
+			_window = window;
 			_butt = butt;
 		}
 		public void actionPerformed(ActionEvent e) {
-			_butt.doClick();			
+			Component focused = _window.getFocusOwner();
+			if(!(focused instanceof JTextField) && !(focused instanceof JComboBox))
+				_butt.doClick();			
 		}
 		
 	}
