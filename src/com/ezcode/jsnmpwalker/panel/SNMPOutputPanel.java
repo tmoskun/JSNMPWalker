@@ -52,7 +52,7 @@ import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 
 public class SNMPOutputPanel extends JPanel {
 	private static final Color HILIT_COLOR = Color.YELLOW;
-	private static final int FIELD_WIDTH = Math.max(SNMPSessionFrame.WIDTH/6, 300);
+	private static final int FIELD_WIDTH = Math.min(SNMPSessionFrame.WIDTH/6, 300);
 	
 	private JTextField _logFileField;
 	private String _logFile = "";
