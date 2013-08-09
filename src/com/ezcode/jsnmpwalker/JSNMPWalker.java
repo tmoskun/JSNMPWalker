@@ -199,8 +199,7 @@ public class JSNMPWalker extends SNMPSessionFrame {
 		done(_netScanLatch, _netScanService, worker, _netScanTerminationThread);	
 	}
 
-	public void runSNMP(ArrayList<SNMPTreeData> treeData,
-			SNMPSessionOptionModel model, String filename) {
+	public void runSNMP(ArrayList<SNMPTreeData> treeData, SNMPSessionOptionModel model, String filename) {
 		if (_writer != null) {
 			try {
 				_writer.close();

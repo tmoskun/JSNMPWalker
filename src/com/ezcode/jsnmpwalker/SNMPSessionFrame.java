@@ -91,7 +91,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 	//private Map<String, JTextField> _fields;
 	private SNMPSessionOptionModel _optionModel;
 
-	private String _logFile = "";
+	//private String _logFile = "";
 	
 	private SNMPConfigurationStorage _confStorage;
 	
@@ -243,25 +243,26 @@ public abstract class SNMPSessionFrame extends JFrame {
 		_runSNMPButton.setMnemonic(KeyEvent.VK_R);
 		_runSNMPButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
+				String logFile = _outputPane.getLogFile();
 				ArrayList<SNMPTreeData> treeData = getTreeData();
 				if(treeData.isEmpty()) {
 					JOptionPane.showMessageDialog(null, "Commands, IP or OID data are not provided", "Data not provided", JOptionPane.WARNING_MESSAGE);
 					return;
 				}
 				
-				if(_logFile != null && _logFile.length() > 0) {
-					File log = new File(_logFile);
+				if(logFile != null && logFile.length() > 0) {
+					File log = new File(logFile);
 					if(log.isDirectory()) {
-						int result = JOptionPane.showConfirmDialog(null, "The log file is a directory. Would you like to write log into " + _logFile + ".txt?");
+						int result = JOptionPane.showConfirmDialog(null, "The log file is a directory. Would you like to write log into " + logFile + ".txt?", "Confirm file name", JOptionPane.OK_CANCEL_OPTION);
 						if(result != JOptionPane.OK_OPTION) 
 							return;
 					}
 					if(!log.getName().endsWith(".txt")) {
-						_logFile = log.getAbsolutePath() + ".txt";
-						log = new File(_logFile);
+						logFile = log.getAbsolutePath() + ".txt";
+						log = new File(logFile);
 					}
 					if(log.exists()) {
-						int result = JOptionPane.showConfirmDialog(null, "The file already exists, do you want to override it?");
+						int result = JOptionPane.showConfirmDialog(null, "The file already exists, do you want to override it?", "Confirm override", JOptionPane.OK_CANCEL_OPTION);
 						if(result != JOptionPane.OK_OPTION) {
 							return;
 						} 
@@ -275,7 +276,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 					}
 				}
 				
-				runSNMP(treeData, getOptionModel(), _logFile);
+				runSNMP(treeData, getOptionModel(), logFile);
 			}
 			
 		});
@@ -299,7 +300,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 		southPane.add(runp, BorderLayout.SOUTH);
 		leftPane.add(southPane, BorderLayout.SOUTH);
 		
-		_outputPane = new SNMPOutputPanel(_logFile);
+		_outputPane = new SNMPOutputPanel();
 		
 		//getContentPane().add(rightPane, BorderLayout.CENTER);
 		
@@ -510,10 +511,6 @@ public abstract class SNMPSessionFrame extends JFrame {
 		_outputPane.toggleSNMPRun(isrun);
 		_runSNMPButton.setEnabled(!isrun);
 		_cancelSNMPButton.setEnabled(isrun);	
-	}
-	
-	public String getLogFile() {
-		return _logFile;
 	}
 	
 	public JPanel getOutputPane() {

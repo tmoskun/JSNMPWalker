@@ -62,6 +62,10 @@ public class SNMPOutputPanel extends JPanel {
 	private final Highlighter hilit;
 	private final Highlighter.HighlightPainter painter;
 	
+	public SNMPOutputPanel() {
+		this("");
+	}
+	
 	public SNMPOutputPanel(String logFile) {
 		super(new BorderLayout());
 		_logFile = logFile;
@@ -153,6 +157,10 @@ public class SNMPOutputPanel extends JPanel {
 		
 		add(logPane, BorderLayout.CENTER);
 		
+	}
+	
+	public String getLogFile() {
+		return _logFile;
 	}
 	
 	public void setResult(String result) {
