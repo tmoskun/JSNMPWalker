@@ -53,14 +53,10 @@ public class SNMPOutputPanel extends JPanel {
 	private JTextField _logFileField;
 	private String _logFile = "";
 	private AttributeSet _docAttributes;
-	//private AttributeSet _highlightAttributes;
 	private JTextWrapPane _logArea;
-	//private StyledDocument _logDoc;
-	//private JTextPane _logArea;
 	private JLabel _loadingSNMPImg;
 	private final Highlighter hilit;
 	private final Highlighter.HighlightPainter painter;
-	//private JPanel _searchPane;
 	
 	public SNMPOutputPanel(String logFile) {
 		super(new BorderLayout());
@@ -77,9 +73,6 @@ public class SNMPOutputPanel extends JPanel {
 	}
 	
 	public void init() {
-		//JPanel rightPane = new JPanel(new BorderLayout());
-		//rightPane.setPreferredSize(new Dimension(600, 800));
-		
 		//Output panel
 		JPanel filePane = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		filePane.add(new JLabel("Output SNMP result to "));
@@ -118,16 +111,11 @@ public class SNMPOutputPanel extends JPanel {
 		filePane.add(choosefile);
 		add(filePane, BorderLayout.NORTH);
 		
-		JPanel logPane = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		//JPanel logPane = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		JPanel logPane = new JPanel(new BorderLayout());
 		logPane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "Output")));
 		StyleContext sc = StyleContext.getDefaultStyleContext();
 		_docAttributes = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.BLACK);
-		//_docAttributes = new SimpleAttributeSet();
-		//StyleConstants.setForeground(_docAttributes, Color.BLACK);
-		//_highlightAttributes = sc.addAttribute(_docAttributes, StyleConstants.Background, Color.YELLOW);
-//		if(_loadingSNMPImg != null) {
-//			logPane.add(_loadingSNMPImg);
-//		}
 		JPanel searchPane = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		final JTextField searchField = new JTextField();
 		searchField.setPreferredSize(new Dimension(300, 20));
@@ -144,28 +132,22 @@ public class SNMPOutputPanel extends JPanel {
 		searchPane.add(searchField);
 		searchPane.add(searchButton);
 		searchPane.add(clearButton);
-		logPane.add(searchPane);
 		if(_loadingSNMPImg != null) {
-			logPane.add(_loadingSNMPImg);
+			searchPane.add(_loadingSNMPImg);
 		}
+		logPane.add(searchPane, BorderLayout.NORTH);
 		
 		JScrollPane sp = new JScrollPane();
 		//sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-		//sp.setPreferredSize(new Dimension(WIDTH/2, 670));
-		//_logDoc = new DefaultStyledDocument();
 		StyledDocument logDoc = new DefaultStyledDocument();
-		//JTextWrapPane logArea = new JTextWrapPane(_logDoc, false);
 		_logArea = new JTextWrapPane(logDoc, false);
 		_logArea.setEditable(false);
 		_logArea.setHighlighter(hilit);
-		//_logArea = new JTextPane();
-		//_logArea.setEditable(false);
-		//sp.getViewport().add(_logArea);
 		sp.getViewport().add(_logArea);
-		sp.getViewport().setPreferredSize(new Dimension(SNMPSessionFrame.WIDTH/2 - 50, SNMPSessionFrame.HEIGHT - 140));
-		logPane.add(sp);
+		//sp.getViewport().setPreferredSize(new Dimension(SNMPSessionFrame.WIDTH/2 - 50, SNMPSessionFrame.HEIGHT - 140));
+		logPane.add(sp, BorderLayout.CENTER);
 		
-		add(logPane);
+		add(logPane, BorderLayout.CENTER);
 	}
 	
 	public void setResult(String result) {
@@ -178,20 +160,16 @@ public class SNMPOutputPanel extends JPanel {
 		try {
 			result = doc.getText(0, doc.getLength());
 		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return result;
-		//return _logArea.getText();
 	}
 	
 	public void appendResult(String result) {
-		//_logArea.append(result);
 		Document doc = _logArea.getDocument();
 		try {
 			doc.insertString(doc.getLength(), result, _docAttributes);
 		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -210,12 +188,10 @@ public class SNMPOutputPanel extends JPanel {
 		}
 		
 		public void actionPerformed(ActionEvent e) {
-			//List<Integer> positions = new ArrayList<Integer>();
 			String str = _logArea.getText();
 			Pattern patt = Pattern.compile(_searchField.getText());
 			Matcher matt = patt.matcher(str);
 			while(matt.find()) {
-				//positions.add(matt.start());
 				try {
 					hilit.addHighlight(matt.start(), matt.end(), painter);
 				} catch (BadLocationException e1) {
@@ -234,7 +210,6 @@ public class SNMPOutputPanel extends JPanel {
 	     * Constructor
 	     */
 	    JTextWrapPane(boolean wrapState) {
-	        //super();
 	    	super();
 	    	_wrapState = wrapState;
 	    }
