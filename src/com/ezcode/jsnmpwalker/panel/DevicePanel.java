@@ -45,6 +45,7 @@ import com.ezcode.jsnmpwalker.worker.NetworkScanner;
 
 public class DevicePanel extends JPanel {
 	private static final DecimalFormat _prefixFormatter = new DecimalFormat("#,###");
+	public static final int DEFAULT_TEST_REACHABLE = 3000;
 	
 	private SNMPSessionFrame _frame;
 	private JLabel _loadingDataImg;
@@ -57,7 +58,6 @@ public class DevicePanel extends JPanel {
 	public DevicePanel(SNMPSessionFrame frame, JLabel loadingDataImg) {
 		super(new BorderLayout());
 		setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "Discover Network"));
-		//_networkListModel = new DefaultTableModel();
 		_frame = frame;
 		_loadingDataImg = loadingDataImg;
 		init();
@@ -71,7 +71,6 @@ public class DevicePanel extends JPanel {
 		_deviceList = new JTable(_networkListModel);
 		TableCellRenderer renderer = new NetworkDeviceRenderer();
 		_deviceList.getColumn("Devices").setCellRenderer(renderer);
-		//networkPane.add(_networkList, BorderLayout.CENTER);
 		deviceListPane.add(_deviceList, BorderLayout.CENTER);
 		JPanel ipPane = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		ipPane.add(new JLabel("IP:"));
@@ -93,8 +92,6 @@ public class DevicePanel extends JPanel {
 				}
 			}    	
         });
-//		_deviceDataFlavor = new DataFlavor(InetAddress.class,
-//				InetAddress.class.getSimpleName());
 		DragSource deviceDragSource = new DragSource();
 		deviceDragSource.createDefaultDragGestureRecognizer(_deviceList, DnDConstants.ACTION_COPY, new NetworkDeviceDragGestureListener(_deviceList));	
 		JScrollPane sp = new JScrollPane(deviceListPane);
@@ -104,9 +101,6 @@ public class DevicePanel extends JPanel {
 		
 		JPanel paramsPane = new JPanel(new GridLayout(0, 2, 10, 4));
 		paramsPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		//JButton clearList = new JButton("Clear list");
-		//paramsPane.add(clearList);
-		//paramsPane.add(new JLabel());
 		JLabel typeLabel = new JLabel("Network type:", JLabel.TRAILING);
 		String[] types = {NetworkScanner.IPv4, NetworkScanner.IPv6};
 		final JComboBox netTypes = new JComboBox(types);
@@ -120,19 +114,28 @@ public class DevicePanel extends JPanel {
 		ipLabel.setLabelFor(ip);
 		JLabel maskLabel = new JLabel("Prefix length:", JLabel.TRAILING);
 		final JComboBox mask = new JComboBox();
-		//JTextField mask = new JTextField("255.255.255.0");
 		paramsPane.add(maskLabel);
 		paramsPane.add(mask);
 		maskLabel.setLabelFor(mask);
+		JLabel timeoutLabel = new JLabel("Scanning timeout", JLabel.TRAILING);
+		final JTextField timeoutField = new JTextField(String.valueOf(DEFAULT_TEST_REACHABLE));
+		paramsPane.add(timeoutLabel);
+		paramsPane.add(timeoutField);
+		timeoutLabel.setLabelFor(timeoutField);
 		
 		formPane.add(paramsPane, BorderLayout.CENTER);
 		
 		JPanel scanButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		_scanNetworkButton = new JButton("Scan for devices");
-		//scan.setPreferredSize(new Dimension(100, 20));
 		_scanNetworkButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				_frame.scanNetwork(ip.getText(), (Integer) mask.getSelectedItem(), (String) netTypes.getSelectedItem());	
+				int timeout = DEFAULT_TEST_REACHABLE;
+				try {
+					timeout = Integer.parseInt(timeoutField.getText());
+				} catch (Exception ex) {
+					//best effort
+				}
+				_frame.scanNetwork(ip.getText(), (Integer) mask.getSelectedItem(), (String) netTypes.getSelectedItem(), timeout);	
 			}
 		});
 		scanButtons.add(_scanNetworkButton);

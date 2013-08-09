@@ -37,10 +37,10 @@ public class NetworkScanner extends SwingWorker<Object, Object> {
 		PREFIX_DEFAULTS.put(NetworkScanner.IPv4, 24);
 		PREFIX_DEFAULTS.put(NetworkScanner.IPv6, 120);
 	}
-	private static final int TEST_REACHABLE = 3000;
 	
 	//private String _ip;
 	private InetAddress _address;
+	private int _timeout;
 	private SNMPSessionFrame _panel;
 
 	public static final long NUM_OF_DEVICES_LIMIT = 1024;
@@ -51,8 +51,9 @@ public class NetworkScanner extends SwingWorker<Object, Object> {
 //		_panel = panel;
 //	}
 	
-	public NetworkScanner(InetAddress address, SNMPSessionFrame panel) {
+	public NetworkScanner(InetAddress address, int timeout, SNMPSessionFrame panel) {
 		_address = address;
+		_timeout = timeout;
 		_panel = panel;
 	}
 
@@ -68,7 +69,7 @@ public class NetworkScanner extends SwingWorker<Object, Object> {
 			} 
 		}
 		*/
-		if(_address.isReachable(TEST_REACHABLE)) {
+		if(_address.isReachable(_timeout)) {
 			publish(_address);
 		} 
 		return _panel;
