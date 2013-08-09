@@ -12,6 +12,8 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.FlowLayout;
+import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -74,9 +76,9 @@ import com.ezcode.jsnmpwalker.storage.SNMPConfigurationStorage;
 
 public abstract class SNMPSessionFrame extends JFrame {
 
-	public static final int WIDTH = 1800;
-	public static final int HEIGHT = 1000;
-	
+	public static int WIDTH = 1800;
+	public static int HEIGHT = 1000;
+
 	private static final String[] FILTERS = {"Type", "Access", "Status", "Units", "Hint", "ModuleID", "Enums", "Indexes"};
 	private JTree _tree;
 	private DefaultTreeModel _treeModel;
@@ -103,6 +105,21 @@ public abstract class SNMPSessionFrame extends JFrame {
 	
 	public SNMPSessionFrame(String title) {
 		super(title);
+		//size of the screen
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		//height of the task bar
+		Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(getGraphicsConfiguration());
+		int taskBarSize = scnMax.bottom;
+		int maxWidth = screenSize.width;
+		int maxHeight = screenSize.height - taskBarSize;
+		
+		if(WIDTH > maxWidth) {
+			WIDTH = maxWidth;
+		}
+		if(HEIGHT > maxHeight) {
+			HEIGHT = maxHeight;
+		}
+			
 		setSize(WIDTH, HEIGHT);
         try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

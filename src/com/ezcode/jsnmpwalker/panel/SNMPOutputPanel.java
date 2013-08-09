@@ -52,6 +52,7 @@ import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 
 public class SNMPOutputPanel extends JPanel {
 	private static final Color HILIT_COLOR = Color.YELLOW;
+	private static final int FIELD_WIDTH = Math.max(SNMPSessionFrame.WIDTH/6, 300);
 	
 	private JTextField _logFileField;
 	private String _logFile = "";
@@ -80,9 +81,9 @@ public class SNMPOutputPanel extends JPanel {
 		JPanel filePane = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		filePane.add(new JLabel("Output SNMP result to "));
 		_logFileField = new JTextField();
-		_logFileField.setPreferredSize(new Dimension(300, 20));
+		_logFileField.setPreferredSize(new Dimension(FIELD_WIDTH, 20));
 		filePane.add(_logFileField);
-		JButton choosefile = new JButton("Log directory or file");
+		JButton choosefile = new JButton("Directory/File");
 		final JFileChooser fc = new JFileChooser();
 		fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
 		fc.setFileFilter(new FileNameExtensionFilter("Text files", "txt"));
@@ -121,7 +122,7 @@ public class SNMPOutputPanel extends JPanel {
 		_docAttributes = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.BLACK);
 		JPanel searchPane = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		final JTextField searchField = new JTextField();
-		searchField.setPreferredSize(new Dimension(300, 20));
+		searchField.setPreferredSize(new Dimension(FIELD_WIDTH, 20));
 		SearchListener searchLis = new SearchListener(searchField);
 		searchField.addActionListener(searchLis);
 		JButton searchButton = new JButton("Search");
