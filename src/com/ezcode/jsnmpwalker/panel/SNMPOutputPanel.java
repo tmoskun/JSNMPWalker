@@ -9,6 +9,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -24,6 +25,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -32,6 +34,7 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -49,25 +52,29 @@ import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
+import com.ezcode.jsnmpwalker.action.ButtonAction;
 
 public class SNMPOutputPanel extends JPanel {
 	private static final Color HILIT_COLOR = Color.YELLOW;
 	private static final int FIELD_WIDTH = Math.min(SNMPSessionFrame.WIDTH/6, 300);
 	
+	private JFrame _frame;
 	private JTextField _logFileField;
 	private String _logFile = "";
 	private AttributeSet _docAttributes;
 	private JTextWrapPane _logArea;
+	private JButton _clearLogButton;
 	private JLabel _loadingSNMPImg;
 	private final Highlighter hilit;
 	private final Highlighter.HighlightPainter painter;
 	
-	public SNMPOutputPanel() {
-		this("");
+	public SNMPOutputPanel(JFrame frame) {
+		this(frame, "");
 	}
 	
-	public SNMPOutputPanel(String logFile) {
+	public SNMPOutputPanel(JFrame frame, String logFile) {
 		super(new BorderLayout());
+		_frame = frame;
 		_logFile = logFile;
 		hilit = new DefaultHighlighter();
 		painter = new DefaultHighlighter.DefaultHighlightPainter(HILIT_COLOR);
@@ -131,7 +138,7 @@ public class SNMPOutputPanel extends JPanel {
 		searchField.addActionListener(searchLis);
 		JButton searchButton = new JButton("Search");
 		searchButton.addActionListener(searchLis);
-		JButton clearButton = new JButton("Clear");
+		JButton clearButton = new JButton("Clear Search");
 		clearButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				hilit.removeAllHighlights();		
@@ -152,8 +159,20 @@ public class SNMPOutputPanel extends JPanel {
 		_logArea.setEditable(false);
 		_logArea.setHighlighter(hilit);
 		sp.getViewport().add(_logArea);
-		//sp.getViewport().setPreferredSize(new Dimension(SNMPSessionFrame.WIDTH/2 - 50, SNMPSessionFrame.HEIGHT - 140));
 		logPane.add(sp, BorderLayout.CENTER);
+		
+		JPanel logButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		_clearLogButton = new JButton("Clear output panel");
+		_clearLogButton.setMnemonic(KeyEvent.VK_C);
+		_clearLogButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				clearLog();	
+			}	
+		});
+		_clearLogButton.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_C, 0), "Clear");
+		_clearLogButton.getActionMap().put("Clear", new ButtonAction(_frame, _clearLogButton));
+		logButtons.add(_clearLogButton);
+		logPane.add(logButtons, BorderLayout.SOUTH);
 		
 		add(logPane, BorderLayout.CENTER);
 		
@@ -163,8 +182,9 @@ public class SNMPOutputPanel extends JPanel {
 		return _logFile;
 	}
 	
-	public void setResult(String result) {
-		_logArea.setText(result);
+	
+	private void clearLog() {
+		_logArea.setText("");
 	}
 	
 	public String getResult() {
@@ -191,6 +211,7 @@ public class SNMPOutputPanel extends JPanel {
 		_loadingSNMPImg.setVisible(isrun);	
 		_logFileField.setEditable(!isrun);
 		_logFileField.setEnabled(!isrun);
+		_clearLogButton.setEnabled(!isrun);
 	}
 	
 	private class SearchListener implements ActionListener {

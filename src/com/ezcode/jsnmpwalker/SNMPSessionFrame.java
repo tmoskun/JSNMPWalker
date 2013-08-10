@@ -14,7 +14,6 @@ import java.awt.FileDialog;
 import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.Toolkit;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -31,13 +30,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
-import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -62,6 +59,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 
+import com.ezcode.jsnmpwalker.action.ButtonAction;
 import com.ezcode.jsnmpwalker.command.TreeNodeCommandStack;
 import com.ezcode.jsnmpwalker.data.SNMPSessionOptionModel;
 import com.ezcode.jsnmpwalker.data.SNMPTreeData;
@@ -300,7 +298,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 		southPane.add(runp, BorderLayout.SOUTH);
 		leftPane.add(southPane, BorderLayout.SOUTH);
 		
-		_outputPane = new SNMPOutputPanel();
+		_outputPane = new SNMPOutputPanel(this);
 		
 		
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPane, _outputPane);
@@ -520,14 +518,6 @@ public abstract class SNMPSessionFrame extends JFrame {
 	}
 
 	
-	public void clearResult() {
-		setResult("");
-	}
-	
-	public void setResult(String result) {
-		_outputPane.setResult(result);
-	}
-	
 	public String getResult() {
 		return _outputPane.getResult();
 	}
@@ -549,20 +539,5 @@ public abstract class SNMPSessionFrame extends JFrame {
 	}
 	
 */
-
-	private static class ButtonAction extends AbstractAction {
-		private Window _window;
-		private AbstractButton _butt;
-		public ButtonAction(Window window, AbstractButton butt) {
-			_window = window;
-			_butt = butt;
-		}
-		public void actionPerformed(ActionEvent e) {
-			Component focused = _window.getFocusOwner();
-			if(!(focused instanceof JTextField) && !(focused instanceof JComboBox))
-				_butt.doClick();			
-		}
-		
-	}
 }
 

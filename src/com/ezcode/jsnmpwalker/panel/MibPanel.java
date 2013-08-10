@@ -266,7 +266,7 @@ public class MibPanel extends JPanel {
             message = "Failed to load " + file.getAbsolutePath();
             PrintStream out = new PrintStream(System.out);
             e.getLog().printTo(out);
-            _outputPane.setResult(out.toString());
+            _outputPane.appendResult(out.toString());
 		}
         if (message != null) {
             JOptionPane.showMessageDialog(null, message, "Can't load MIB", JOptionPane.ERROR_MESSAGE);
