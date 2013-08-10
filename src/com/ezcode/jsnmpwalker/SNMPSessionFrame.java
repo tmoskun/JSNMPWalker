@@ -302,7 +302,6 @@ public abstract class SNMPSessionFrame extends JFrame {
 		
 		_outputPane = new SNMPOutputPanel();
 		
-		//getContentPane().add(rightPane, BorderLayout.CENTER);
 		
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPane, _outputPane);
 		splitPane.setBorder(null);
@@ -315,7 +314,6 @@ public abstract class SNMPSessionFrame extends JFrame {
 		getContentPane().add(splitPane);
 		
 		//Menu Bar
-		//this.setJMenuBar(createMenuBar());
 		this.setJMenuBar(new SNMPMenuBar(this, ((MibPanel)_dataPane.getMibPanel()).getMibMenu(), _commandStack));
 			
 		addWindowListener(new WindowAdapter() {

@@ -150,8 +150,10 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 	
 	public void addNodes(String str) {
 		TreePath[] paths = _tree.getSelectionPaths();
-		TreeNodeCommandStack.Command add = new AddCommand(this, paths, str);
-		_commandStack.add(add);
+		if(paths != null && paths.length > 0) {
+			TreeNodeCommandStack.Command add = new AddCommand(this, paths, str);
+			_commandStack.add(add);
+		}
 	}
 	
 	public void addNode(DefaultMutableTreeNode parent, String str) {
@@ -173,13 +175,15 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 	
 	public void editNode(String str) {
 		TreePath path = _tree.getSelectionPath();
-		boolean isEditing = (str == null || str.length() == 0);
-		if(isEditing) {
-			_tree.startEditingAtPath(path);
-			((SNMPTreeCellEditor) _cellEditor).setCommandData((TreeNode) path.getLastPathComponent());
-		} else {
-			TreeNodeCommandStack.Command paste = new PasteCommand(this, path, str);
-			_commandStack.add(paste);
+		if(path != null) {
+			boolean isEditing = (str == null || str.length() == 0);
+			if(isEditing) {
+				_tree.startEditingAtPath(path);
+				((SNMPTreeCellEditor) _cellEditor).setCommandData((TreeNode) path.getLastPathComponent());
+			} else {
+				TreeNodeCommandStack.Command paste = new PasteCommand(this, path, str);
+				_commandStack.add(paste);
+			}
 		}
 	}
 
@@ -194,13 +198,15 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 	}
 	
 	private void copyData(Set<TreePath> paths) {
-		StringBuilder str = new StringBuilder();
-		for(TreePath path: paths) {
-			DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-			copyNodeData(node, str);
+		if(paths != null && paths.size() > 0) {
+			StringBuilder str = new StringBuilder();
+			for(TreePath path: paths) {
+				DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+				copyNodeData(node, str);
+			}
+			if(str.length() > 0)
+				setClipboardContents(str.toString());
 		}
-		if(str.length() > 0)
-			setClipboardContents(str.toString());
 	}
 	
 	public void copyData(List<TreeNode> nodes) {
@@ -222,14 +228,11 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 	public void pasteData() {
 		TreePath[] paths = _tree.getSelectionPaths();
 		pasteData(paths, null);
-//		if(paths != null && paths.length > 0) {
-//			TreeNodeCommandStack.Command paste = new PasteCommand(paths);
-//			_commandStack.add(paste);
-//		}
 	}
 	
 	public void pasteData(TreePath path, String[] str) {
-		pasteData(new TreePath[] {path}, str);
+		if(path != null)
+			pasteData(new TreePath[] {path}, str);
 	}
 	
 	private void pasteData(TreePath[] paths, String[] str) {
@@ -246,7 +249,8 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 	}
 	
 	public void insertData(TreePath path, String[] str) {
-		insertData(new TreePath[] {path}, str);
+		if(path != null)
+			insertData(new TreePath[] {path}, str);
 	}
 	
 	public void insertData(TreePath[] paths, String[] str) {
@@ -259,8 +263,10 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 	}
 	
 	private void insertData(TreePath path, String str) {
-		TreeNodeCommandStack.Command insert = new InsertCommand(this, path, str);
-		_commandStack.add(insert);
+		if(path != null) {
+			TreeNodeCommandStack.Command insert = new InsertCommand(this, path, str);
+			_commandStack.add(insert);
+		}
 	}
 	
 	

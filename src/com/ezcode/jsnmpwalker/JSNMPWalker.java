@@ -16,6 +16,7 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -97,47 +98,23 @@ public class JSNMPWalker extends SNMPSessionFrame {
 		try {
 			if(ip.equalsIgnoreCase(NetworkScanner.LOCALHOST)) {
 				if(isUnix()) {
-					NetworkInterface eth0Interface = NetworkInterface.getByName("eth0");
-					if(eth0Interface != null) {
-					     Enumeration<InetAddress> iplist = eth0Interface.getInetAddresses();
-					        InetAddress addr = null;
-					        while (iplist.hasMoreElements()) {
-					            InetAddress ad = iplist.nextElement();
-					            if(!ad.isLoopbackAddress()) {
-						            //byte bs[] = ad.getAddress();
-						            if (netType.equalsIgnoreCase(NetworkScanner.IPv4) && (ad instanceof Inet4Address)) {
-						                addr = ad;
-						                break;
-						            } else if(netType.equalsIgnoreCase(NetworkScanner.IPv6) && (ad instanceof Inet6Address) ) {
-						            	addr = ad;
-						            	break;
-						            }
-					            }
-					        }
-
-					        if (addr != null) {
-					        	ip = addr.getHostAddress();
-					        }
-					}
+					InetAddress addr = null;
+		        	NetworkInterface eth0Interface = NetworkInterface.getByName("eth0");
+					addr = getLocalHostAddressLinux(eth0Interface, netType);
+			        if (addr == null) {
+						NetworkInterface wlan0Interface = NetworkInterface.getByName("wlan0");
+			        	addr = getLocalHostAddressLinux(wlan0Interface, netType);
+			        }
+			        if (addr != null) {
+			        	ip = addr.getHostAddress();
+			        } else {
+			        	JOptionPane.showMessageDialog(null, "Can't get your Unix/Linux localhost network interface. Please, check your network connection or try to enter your ip directly.");
+			        	return;
+			        }
 				} else {
 					InetAddress localhost = InetAddress.getLocalHost();
 					ip = localhost.getHostAddress();
 				} 
-				/*
-				Enumeration nets = NetworkInterface.getNetworkInterfaces();
-				while(nets.hasMoreElements()) {
-					NetworkInterface netint = (NetworkInterface) nets.nextElement();
-			        System.out.println("Display name: " 
-			                + netint.getDisplayName());
-			        System.out.println("Hardware address: " 
-			                + Arrays.toString(netint.getHardwareAddress()));
-			        Enumeration addresses = netint.getInetAddresses();
-			        while(addresses.hasMoreElements()) {
-			        	Object address = addresses.nextElement();
-			        	System.out.println("address " + address.getClass().getName() + " " + address);
-			        }
-				}
-				*/
 			} else {
 				//try to resolve the address as a computer name
 				try {
@@ -163,24 +140,35 @@ public class JSNMPWalker extends SNMPSessionFrame {
 				SwingWorker worker = new NetworkScanner(address, timeout, this);
 				_netScanService.submit(worker);
 			}
-			//SubnetUtils utils = new SubnetUtils(subnet);
-			//String[] addresses = utils.getInfo().getAllAddresses();
-			/*
-			_netScanLatch = new CountDownLatch(addresses.length);
-			_netScanService = Executors.newFixedThreadPool(NUM_OF_THREADS);
-			toggleNetScan(true);
-			for(int i = 0; i < addresses.length; i++) {
-				//byte[] addr = addresses[i].getBytes();
-				//SwingWorker worker = new NetworkScanner(addr, this);
-				SwingWorker worker = new NetworkScanner(addresses[i], this);
-				_netScanService.submit(worker);
-			}
-			*/
 		} catch(Exception e) {
 			JOptionPane.showMessageDialog(null, "Can't scan the network", "Error", JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 		}
-		//_netScanService.shutdown();
+	}
+	
+	private InetAddress getLocalHostAddressLinux(NetworkInterface netInterface, String netType) {
+        InetAddress addr = null;
+		try {
+			if(netInterface != null && netInterface.isUp() && !netInterface.isLoopback()) {
+			     Enumeration<InetAddress> iplist = netInterface.getInetAddresses();
+			        while (iplist.hasMoreElements()) {
+			            InetAddress ad = iplist.nextElement();
+			            if(!ad.isLoopbackAddress()) {
+				            //byte bs[] = ad.getAddress();
+				            if (netType.equalsIgnoreCase(NetworkScanner.IPv4) && (ad instanceof Inet4Address)) {
+				                addr = ad;
+				                break;
+				            } else if(netType.equalsIgnoreCase(NetworkScanner.IPv6) && (ad instanceof Inet6Address) ) {
+				            	addr = ad;
+				            	break;
+				            }
+			            }
+			        }
+			}
+		} catch (SocketException e) {
+			//ignore
+		}
+		return addr;
 	}
 	
 	@Override
