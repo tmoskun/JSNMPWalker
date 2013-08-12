@@ -80,6 +80,7 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 				TreePath path = tree.getPathForLocation(x, y);
 				if (path == null)
 					return;	
+				tree.getSelectionModel().addSelectionPath(path);
 
 				int level = path.getPathCount();
 				
