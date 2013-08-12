@@ -199,6 +199,11 @@ public class DevicePanel extends JPanel {
 	}
 	
 	public void addAddress(InetAddress address) {
+		int rowcount = _deviceList.getRowCount();
+		for(int i=0; i < rowcount; i++) {
+			if(_networkListModel.getValueAt(i, 0).equals(address))
+				return;
+		}
 		_networkListModel.addRow(new Object[] {address});
 	}
 	
