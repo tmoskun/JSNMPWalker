@@ -5,6 +5,7 @@ package com.ezcode.jsnmpwalker.data;
  * This Software is distributed under GPLv3 license
  */
 
+import java.net.InetAddress;
 import java.util.Arrays;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -83,17 +84,12 @@ public class SNMPTreeData {
 		return Arrays.asList(COMMANDS).contains(command);
 	}
 	private static boolean validateIP(String ip) {
-		String[] tokens = ip.split("\\.");
-		if (tokens.length != 4) {
+		try {
+			InetAddress.getByName(ip);
+			return true;
+		} catch(Exception e) {
 			return false;
 		}
-		for (String str : tokens) {
-			int i = Integer.parseInt(str);
-			if ((i < 0) || (i > 255)) {
-				return false;
-			}
-		}
-		return true;
 	}
 	//TODO
 	private static boolean validateOID(String oid) {
