@@ -71,6 +71,7 @@ import com.ezcode.jsnmpwalker.panel.MibPanel;
 import com.ezcode.jsnmpwalker.panel.SNMPOutputPanel;
 import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
 import com.ezcode.jsnmpwalker.storage.SNMPConfigurationStorage;
+import com.ezcode.jsnmpwalker.worker.SNMPSessionWorker;
 
 public abstract class SNMPSessionFrame extends JFrame {
 
@@ -525,6 +526,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 	public void appendResult(String result) {
 		_outputPane.appendResult(result);
 	}
+
 	
 /*
 	//TODO: filters

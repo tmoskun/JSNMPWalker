@@ -5,8 +5,6 @@ package com.ezcode.jsnmpwalker;
  * This Software is distributed under GPLv3 license
  */
 
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.Transferable;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -20,10 +18,12 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JOptionPane;
@@ -34,6 +34,7 @@ import javax.swing.SwingWorker;
 import com.ezcode.jsnmpwalker.data.SNMPSessionOptionModel;
 import com.ezcode.jsnmpwalker.data.SNMPTreeData;
 import com.ezcode.jsnmpwalker.formatter.SNMPFormatter;
+import com.ezcode.jsnmpwalker.message.SNMPPublisher;
 import com.ezcode.jsnmpwalker.worker.NetworkScanner;
 import com.ezcode.jsnmpwalker.worker.SNMPSessionWorker;
 
@@ -47,7 +48,7 @@ import edazdarevic.commons.net.CIDRUtils;
 //import org.apache.commons.cli.ParseException;
 
 public class JSNMPWalker extends SNMPSessionFrame {
-	private static final int NUM_OF_THREADS = 20;
+	private static final int NUM_OF_THREADS = 1;
 	private static String OS = System.getProperty("os.name").toLowerCase();
 	
 	public static String GET_BULK = "1";
@@ -61,6 +62,8 @@ public class JSNMPWalker extends SNMPSessionFrame {
 	
 	private ExecutorService _snmpService;
 	private CountDownLatch _snmpLatch;
+	private ArrayList<SwingWorker> _snmpWorkers;
+	private Thread _snmpPublisher;
 	private ExecutorService _netScanService;
 	private CountDownLatch _netScanLatch;
 	private Thread _snmpTerminationThread;
@@ -77,7 +80,7 @@ public class JSNMPWalker extends SNMPSessionFrame {
 	public JSNMPWalker(boolean debug) {
 		super("SNMP run");
 		_debug = debug;
-		//_snmpWorkers = new ArrayList<SwingWorker>();
+		_snmpWorkers = new ArrayList<SwingWorker>();
 		//_snmpService = Executors.newFixedThreadPool(NUM_OF_THREADS);
 		//_netScanWorkers = new ArrayList<SwingWorker>();
 		//_netScanService = Executors.newFixedThreadPool(NUM_OF_THREADS);
@@ -221,10 +224,15 @@ public class JSNMPWalker extends SNMPSessionFrame {
 				return null;
 			}
 		});
+		_snmpWorkers.clear();
+		BlockingQueue snmpQueue = new LinkedBlockingQueue();
+		_snmpPublisher = new SNMPPublisher(this, snmpQueue, _writer);
+		_snmpPublisher.start();
 		toggleSNMPRun(true);
 		for (SNMPTreeData d : data) {
 			SwingWorker worker = new SNMPSessionWorker(this, _formatter, d,
-					getOptionModel(), _writer);
+					getOptionModel(), snmpQueue);
+			_snmpWorkers.add(worker);
 			_snmpService.submit(worker);
 		}
 	}
@@ -232,7 +240,16 @@ public class JSNMPWalker extends SNMPSessionFrame {
 	public void stopSNMP() {
 		if(_snmpService != null) {
 			try {
+//				while(!_snmpWorkers.isEmpty()) {
+//					SwingWorker worker = _snmpWorkers.remove(0);
+//					worker.cancel(true);
+//				}
+				for(SwingWorker worker: _snmpWorkers) {
+					worker.cancel(true);
+				}
+				_snmpPublisher.interrupt();
 				List<Runnable> tasks = _snmpService.shutdownNow();
+/*
 				if (_writer != null) {
 					try {
 						_writer.close();
@@ -240,17 +257,11 @@ public class JSNMPWalker extends SNMPSessionFrame {
 						e1.printStackTrace();
 					}
 				}
+*/
 			} catch (Exception e) {
 				JOptionPane.showMessageDialog(null, "Can't cancel the process", "Warning", JOptionPane.WARNING_MESSAGE);
 			}
 		}
-//		if (_writer != null) {
-//			try {
-//				_writer.close();
-//			} catch (IOException e1) {
-//				e1.printStackTrace();
-//			}
-//		}
 	}
 		
 	public void doneSNMP(SwingWorker worker) {
@@ -259,7 +270,8 @@ public class JSNMPWalker extends SNMPSessionFrame {
 	
 	private void done(final CountDownLatch latch, final ExecutorService service, final SwingWorker worker, Thread terminationThread) {
 		if(latch != null && service != null) {
-			latch.countDown();
+			if(!worker.isCancelled())
+				latch.countDown();
 			if(latch.getCount() == 0)
 				service.shutdown();
 			if(!terminationThread.isAlive() && (service.isShutdown() || worker.isCancelled())) {
@@ -306,6 +318,22 @@ public class JSNMPWalker extends SNMPSessionFrame {
 		}
 		
 	}
+
+	/*
+	private class SNMPThreadFactory implements ThreadFactory {
+
+		@Override
+		public Thread newThread(final Runnable r) {
+			return new Thread(r) {
+				public void interrupt() {
+					System.out.println(r.getClass().getName());
+					super.interrupt();
+				}
+			};
+		}
+		
+	}
+	*/
 	
 	public static void main(String args[]) {
 		//final Options opts = new Options();

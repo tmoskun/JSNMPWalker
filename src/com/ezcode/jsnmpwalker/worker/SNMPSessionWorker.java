@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 
 import javax.swing.SwingWorker;
 
@@ -45,8 +46,9 @@ import com.ezcode.jsnmpwalker.formatter.SNMPFormatter;
 public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	
 	private SNMPFormatter _formatter;
-	private Writer _writer;
+//	private Writer _writer;
 	private SNMPSessionFrame _panel;
+	private BlockingQueue<String> _queue;
 	private SNMPTreeData _treeData;
 	private Map<String, String> _options;
 	
@@ -61,18 +63,16 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	private int _responses;
 	private Snmp _snmp;
 	
-	public SNMPSessionWorker(SNMPSessionFrame panel, SNMPFormatter formatter, SNMPTreeData treeData, Map<String, String> options) {
-		this(panel, formatter, treeData, options, null);
-	}
 	
-	public SNMPSessionWorker(SNMPSessionFrame panel, SNMPFormatter formatter, SNMPTreeData treeData, Map<String, String> options, Writer w) {
+	public SNMPSessionWorker(SNMPSessionFrame panel, SNMPFormatter formatter, SNMPTreeData treeData, Map<String, String> options, BlockingQueue<String> queue) {
 		_panel = panel;
+		_queue = queue;
 		_treeData = treeData;
 		_options = options;
 		_formatter = formatter;
 		
 		_snmp = SnmpSingleton.getSnmp();
-		_writer = w;
+		//_writer = w;
 		_requests = 0;
 		_responses = 0;
 		_walkList = new HashMap<Integer32,String>();
@@ -113,23 +113,22 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 			    	_walkList.remove(event.getRequest().getRequestID());
 			    	return;
 			    }
-			    publish(new PDUData(event.getPeerAddress(), pdu, getResponseTime(pdu)));
-			    // check if it's a walk
-			    Integer32 oldReqId = pdu.getRequestID();
-			    String oid = _walkList.get(oldReqId);
-			    if (oid != null)
-			    {
-			    	// it's a walk
-			    	_walkList.remove(oldReqId);
-			    	// get the last one, in case it's bulk
-			    	String retOid = pdu.getVariableBindings().get(pdu.getVariableBindings().size()-1).getOid().toString();
-			    			
-			    	if (!Null.isExceptionSyntax(pdu.get(0).getVariable().getSyntax()) && retOid.startsWith(oid) && !retOid.equals(oid))
-			    	{
-			    		Integer32 reqId = walkCore(retOid);
-			    		//--do some bookkeeping
-			    		_walkList.put(reqId, oid); // keep the original OID
-			    	}
+			    if(!SNMPSessionWorker.this.isCancelled()) {
+			    	enqueue(new PDUData(event.getPeerAddress(), pdu, getResponseTime(pdu)));
+				    // check if it's a walk
+				    Integer32 oldReqId = pdu.getRequestID();
+				    String oid = _walkList.get(oldReqId);
+				    if (oid != null) {
+				    	// it's a walk
+				    	_walkList.remove(oldReqId);
+				    	// get the last one, in case it's bulk
+				    	String retOid = pdu.getVariableBindings().get(pdu.getVariableBindings().size()-1).getOid().toString();
+				    	if (!SNMPSessionWorker.this.isCancelled() && !Null.isExceptionSyntax(pdu.get(0).getVariable().getSyntax()) && retOid.startsWith(oid) && !retOid.equals(oid)) {
+				    		Integer32 reqId = walkCore(retOid);
+					    	//--do some bookkeeping
+					    	_walkList.put(reqId, oid); // keep the original OID
+				    	}
+				    }
 			    }
 			 }
 		};	
@@ -159,27 +158,11 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 		return _panel;
 	}
 	
-	@Override
-	protected void process(List<Object> chunks) {
-		for(Object o: chunks) {
-			if(o instanceof PDUData) {
-				PDUData d = (PDUData) o;
-				String result = d.toString();
-				_panel.appendResult(d.toString());
-				if(_writer != null) {
-					try {
-						_writer.write(result);
-						_writer.flush();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}	
-		}
+	private void enqueue(PDUData data) {
+		_queue.add(data.toString());
 	}
 	
-	
+		
 	@Override
 	protected void done() {
 		_panel.doneSNMP(this);
@@ -250,7 +233,7 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	
 	private void send(PDU pdu) {
 		try {
-			publish(new PDUData(_target.getAddress(), pdu));
+			enqueue(new PDUData(_target.getAddress(), pdu));
 			_snmp.send(pdu, _target, null, _listener);
 			++_requests;
 			
@@ -317,5 +300,6 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 		
 		
 	}
+	
 
 }
