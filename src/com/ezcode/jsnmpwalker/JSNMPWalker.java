@@ -48,7 +48,7 @@ import edazdarevic.commons.net.CIDRUtils;
 //import org.apache.commons.cli.ParseException;
 
 public class JSNMPWalker extends SNMPSessionFrame {
-	private static final int NUM_OF_THREADS = 1;
+	private static final int NUM_OF_THREADS = 10;
 	private static String OS = System.getProperty("os.name").toLowerCase();
 	
 	public static String GET_BULK = "1";
