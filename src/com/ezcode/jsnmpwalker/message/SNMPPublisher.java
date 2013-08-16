@@ -60,8 +60,8 @@ public class SNMPPublisher extends Thread {
 							_writer.write(result.toString());
 							_writer.flush();
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							//ignore
+							//e.printStackTrace();
 						}
 					}
 				}
