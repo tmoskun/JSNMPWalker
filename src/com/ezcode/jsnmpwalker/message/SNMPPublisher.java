@@ -33,6 +33,7 @@ public class SNMPPublisher extends Thread {
 				_buffer.clear();
 				this.sleep(250);
 				_queue.drainTo(_buffer);
+				/*
 				for(String result: _buffer) {
 					if(!isInterrupted()) {
 						_frame.appendResult(result);
@@ -44,6 +45,23 @@ public class SNMPPublisher extends Thread {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
+						}
+					}
+				}
+				*/
+				StringBuilder result = new StringBuilder();
+				for(String s: _buffer) {
+					result.append(s);
+				}
+				if(!isInterrupted()) {
+					_frame.appendResult(result.toString());
+					if(_writer != null) {
+						try {
+							_writer.write(result.toString());
+							_writer.flush();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
 					}
 				}

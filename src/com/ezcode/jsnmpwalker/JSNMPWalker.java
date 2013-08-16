@@ -29,8 +29,6 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
-//import org.apache.commons.net.util.SubnetUtils;
-
 import com.ezcode.jsnmpwalker.data.SNMPSessionOptionModel;
 import com.ezcode.jsnmpwalker.data.SNMPTreeData;
 import com.ezcode.jsnmpwalker.formatter.SNMPFormatter;
@@ -81,9 +79,6 @@ public class JSNMPWalker extends SNMPSessionFrame {
 		super("SNMP run");
 		_debug = debug;
 		_snmpWorkers = new ArrayList<SwingWorker>();
-		//_snmpService = Executors.newFixedThreadPool(NUM_OF_THREADS);
-		//_netScanWorkers = new ArrayList<SwingWorker>();
-		//_netScanService = Executors.newFixedThreadPool(NUM_OF_THREADS);
 		_formatter = new SNMPFormatter();	
 	}
 	
