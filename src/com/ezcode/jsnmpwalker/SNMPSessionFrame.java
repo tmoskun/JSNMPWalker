@@ -504,6 +504,10 @@ public abstract class SNMPSessionFrame extends JFrame {
 		((MibPanel) _dataPane.getMibPanel()).refreshMibTree();
 	}
 	
+	public void resetOutputSearch() {
+		_outputPane.resetSearch(true);
+	}
+	
 	public void toggleSNMPRun(boolean isrun) {
 		_outputPane.toggleSNMPRun(isrun);
 		_runSNMPButton.setEnabled(!isrun);

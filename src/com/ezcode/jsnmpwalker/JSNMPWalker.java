@@ -223,6 +223,7 @@ public class JSNMPWalker extends SNMPSessionFrame {
 		BlockingQueue snmpQueue = new LinkedBlockingQueue();
 		_snmpPublisher = new SNMPPublisher(this, snmpQueue, _writer);
 		_snmpPublisher.start();
+		resetOutputSearch();
 		toggleSNMPRun(true);
 		for (SNMPTreeData d : data) {
 			SwingWorker worker = new SNMPSessionWorker(this, _formatter, d,
