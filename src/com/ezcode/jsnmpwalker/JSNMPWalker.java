@@ -32,7 +32,7 @@ import javax.swing.SwingWorker;
 import com.ezcode.jsnmpwalker.data.SNMPSessionOptionModel;
 import com.ezcode.jsnmpwalker.data.SNMPTreeData;
 import com.ezcode.jsnmpwalker.formatter.SNMPFormatter;
-import com.ezcode.jsnmpwalker.message.SNMPPublisher;
+import com.ezcode.jsnmpwalker.publish.SNMPPublisher;
 import com.ezcode.jsnmpwalker.worker.NetworkScanner;
 import com.ezcode.jsnmpwalker.worker.SNMPSessionWorker;
 

@@ -1,4 +1,4 @@
-package com.ezcode.jsnmpwalker.message;
+package com.ezcode.jsnmpwalker.publish;
 
 import java.io.IOException;
 import java.io.Writer;

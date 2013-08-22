@@ -118,9 +118,8 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 				    // check if it's a walk
 				    Integer32 oldReqId = pdu.getRequestID();
 				    String oid = _walkList.get(oldReqId);
+			    	// it's a walk
 				    if (oid != null) {
-				    	// it's a walk
-				    	_walkList.remove(oldReqId);
 				    	// get the last one, in case it's bulk
 				    	String retOid = pdu.getVariableBindings().get(pdu.getVariableBindings().size()-1).getOid().toString();
 				    	if (!SNMPSessionWorker.this.isCancelled() && !Null.isExceptionSyntax(pdu.get(0).getVariable().getSyntax()) && retOid.startsWith(oid) && !retOid.equals(oid)) {
@@ -129,6 +128,7 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 					    	_walkList.put(reqId, oid); // keep the original OID
 				    	}
 				    }
+			    	_walkList.remove(oldReqId);
 			    }
 			 }
 		};	
@@ -243,11 +243,10 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	}
 	
 	public boolean isComplete() {
-		return ((_responses >= _requests) && _walkList.isEmpty());
+		return this.isCancelled() || ((_responses >= _requests) && _walkList.isEmpty());
 	}
 	
-	public void printStats()
-	{
+	public void printStats() {
 		if (isComplete())
 			System.out.println(_target.getAddress()+": Completed. "+_requests+" request, "+_responses+" responses");
 		else
