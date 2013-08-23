@@ -39,7 +39,6 @@
 
 
 <!-- INITIALIZATION -->
-  <property name="ant.build.javac.source" value="1.7"/>
   <property name="build.title" value="JSNMPWalker" />
   <property name="build.java.package" value="com.ezcode.jsnmpwalker" />
   <property name="build.src" value="src" />

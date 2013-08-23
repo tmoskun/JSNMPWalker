@@ -118,7 +118,7 @@ public class DevicePanel extends JPanel {
 		paramsPane.add(maskLabel);
 		paramsPane.add(mask);
 		maskLabel.setLabelFor(mask);
-		JLabel usePingLabel = new JLabel("Use system function (ping)", JLabel.TRAILING);
+		JLabel usePingLabel = new JLabel("Use ping", JLabel.TRAILING);
 		usePingLabel.setToolTipText("Try to use a system function vs. internal");
 		final JCheckBox usePing = new JCheckBox("", true);
 		paramsPane.add(usePingLabel);
