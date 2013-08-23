@@ -5,6 +5,7 @@ package com.ezcode.jsnmpwalker.worker;
  * This Software is distributed under GPLv3 license
  */
 
+import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -40,6 +41,7 @@ public class NetworkScanner extends SwingWorker<Object, Object> {
 	
 	//private String _ip;
 	private InetAddress _address;
+	private boolean _usePing;
 	private int _timeout;
 	private SNMPSessionFrame _panel;
 
@@ -51,29 +53,30 @@ public class NetworkScanner extends SwingWorker<Object, Object> {
 //		_panel = panel;
 //	}
 	
-	public NetworkScanner(InetAddress address, int timeout, SNMPSessionFrame panel) {
+	public NetworkScanner(InetAddress address, boolean usePing, int timeout, SNMPSessionFrame panel) {
 		_address = address;
+		_usePing = usePing;
 		_timeout = timeout;
 		_panel = panel;
 	}
 
 	@Override
-	protected Object doInBackground() throws Exception {
-		/*
-		InetAddress[] addresses = InetAddress.getAllByName(_ip);
-		for(int i = 0; i < addresses.length; i++) {
-			InetAddress address = addresses[i];
-			//System.out.println(address);
-			if(address.isReachable(1000)) {
-				publish(address);
-			} 
+	protected Object doInBackground() throws Exception {		
+		if(_usePing) {
+		    Process p = java.lang.Runtime.getRuntime().exec("ping -c 1 -W " + _timeout/1000 + " " + _address.getHostAddress());
+		    int result = p.waitFor();
+		    //address is reachable
+		    if(result == 0) {
+		    	publish(_address);
+		    }
+		} else {
+			if(_address.isReachable(_timeout)) {
+				publish(_address);
+			}
 		}
-		*/
-		if(_address.isReachable(_timeout)) {
-			publish(_address);
-		} 
 		return _panel;
 	}
+	
 	
 	@Override
 	protected void process(List<Object> chunks) {

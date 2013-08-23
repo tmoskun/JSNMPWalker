@@ -92,7 +92,7 @@ public class JSNMPWalker extends SNMPSessionFrame {
 	}
 	
 	@Override
-	public void scanNetwork(String ip, Integer mask, String netType, int timeout) {
+	public void scanNetwork(String ip, Integer mask, String netType, boolean usePing, int timeout) {
 		try {
 			if(ip.equalsIgnoreCase(NetworkScanner.LOCALHOST)) {
 				if(isUnix()) {
@@ -135,7 +135,7 @@ public class JSNMPWalker extends SNMPSessionFrame {
 			});
 			toggleNetScan(true);
 			for(InetAddress address: addresses) {
-				SwingWorker worker = new NetworkScanner(address, timeout, this);
+				SwingWorker worker = new NetworkScanner(address, usePing, timeout, this);
 				_netScanService.submit(worker);
 			}
 		} catch(Exception e) {

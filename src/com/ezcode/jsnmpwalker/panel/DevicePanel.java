@@ -24,6 +24,7 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -117,7 +118,12 @@ public class DevicePanel extends JPanel {
 		paramsPane.add(maskLabel);
 		paramsPane.add(mask);
 		maskLabel.setLabelFor(mask);
-		JLabel timeoutLabel = new JLabel("Scanning timeout", JLabel.TRAILING);
+		JLabel usePingLabel = new JLabel("Use system function (ping)", JLabel.TRAILING);
+		usePingLabel.setToolTipText("Try to use a system function vs. internal");
+		final JCheckBox usePing = new JCheckBox("", true);
+		paramsPane.add(usePingLabel);
+		paramsPane.add(usePing);
+		JLabel timeoutLabel = new JLabel("Scanning timeout, ms", JLabel.TRAILING);
 		final JTextField timeoutField = new JTextField(String.valueOf(DEFAULT_TEST_REACHABLE));
 		paramsPane.add(timeoutLabel);
 		paramsPane.add(timeoutField);
@@ -135,7 +141,7 @@ public class DevicePanel extends JPanel {
 				} catch (Exception ex) {
 					//best effort
 				}
-				_frame.scanNetwork(ip.getText(), (Integer) mask.getSelectedItem(), (String) netTypes.getSelectedItem(), timeout);	
+				_frame.scanNetwork(ip.getText(), (Integer) mask.getSelectedItem(), (String) netTypes.getSelectedItem(), usePing.isSelected(), timeout);	
 			}
 		});
 		scanButtons.add(_scanNetworkButton);

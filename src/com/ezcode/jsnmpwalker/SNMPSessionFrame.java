@@ -483,7 +483,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 	
 	public abstract void loadDefaultMibs();
 	
-	public abstract void scanNetwork(String ip, Integer mask, String netType, int timeout);
+	public abstract void scanNetwork(String ip, Integer mask, String netType, boolean usePing, int timeout);
 	
 	public abstract void stopScanning();
 	
