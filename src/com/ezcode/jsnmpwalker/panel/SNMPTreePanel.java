@@ -116,7 +116,7 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 		selmodel.addTreeSelectionListener(new TreeSelectionListener() {
 			public void valueChanged(TreeSelectionEvent e) {
 				TreePath[] paths = selmodel.getSelectionPaths();
-				if(paths.length == 1) {
+				if(paths == null || paths.length == 1) {
 					return;
 				}
 				if(e.isAddedPath()) {

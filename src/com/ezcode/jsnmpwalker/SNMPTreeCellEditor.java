@@ -49,7 +49,7 @@ public class SNMPTreeCellEditor implements TreeCellEditor {
 	public Component getTreeCellEditorComponent(JTree tree, Object value,
 			boolean isSelected, boolean expanded, boolean leaf, int row) {
 	    TreePath path = tree.getPathForRow(row);
-	    if(value == null || value.toString().length() == 0) {
+	    if(value == null || value.toString() == null || value.toString().length() == 0) {
 		    switch(path.getPathCount()) {
 		    	case COMMAND_NODE: _fieldEditor.setText("Add Command..."); break;
 		    	case IP_NODE: _fieldEditor.setText("Add IP..."); break;
