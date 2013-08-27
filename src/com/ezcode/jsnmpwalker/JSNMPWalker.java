@@ -136,13 +136,10 @@ public class JSNMPWalker extends SNMPSessionFrame {
 			});
 			boolean isWindows = isWindows();
 			toggleNetScan(true);
-			//String networkAddress = utils.getNetworkAddress();
-			//String broadcastAddress = utils.getBroadcastAddress();
 			List<InetAddress> broadcastAddresses = getBroadcastAddresses();
 			for(InetAddress address: addresses) {
 				String hostAddress = address.getHostAddress();
-				//if(address.isLoopbackAddress() || hostAddress.equals(networkAddress) || hostAddress.equals(broadcastAddress)) {
-				if(address.isLoopbackAddress() || broadcastAddresses.contains(address)) {
+				if(address.isLoopbackAddress()) {
 					_netScanLatch.countDown();
 				} else {
 					SwingWorker worker = new NetworkScanner(address, usePing, timeout, isWindows, this);
@@ -163,7 +160,6 @@ public class JSNMPWalker extends SNMPSessionFrame {
 			        while (iplist.hasMoreElements()) {
 			            InetAddress ad = iplist.nextElement();
 			            if(!ad.isLoopbackAddress()) {
-				            //byte bs[] = ad.getAddress();
 				            if (netType.equalsIgnoreCase(NetworkScanner.IPv4) && (ad instanceof Inet4Address)) {
 				                addr = ad;
 				                break;
