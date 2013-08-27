@@ -122,6 +122,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 		setSize(WIDTH, HEIGHT);
         try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			//UIManager.put("TextPane.selectionForeground", Color.GREEN.darker());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 
@@ -319,8 +320,9 @@ public abstract class SNMPSessionFrame extends JFrame {
 			
 			@Override
 			public void windowClosing(WindowEvent e) {
-				if(closeApp()) {				
+				if(promptCloseApp()) {				
 					super.windowClosing(e);
+					closeScanning();
 					System.exit(0);
 				}
 			}
@@ -331,8 +333,15 @@ public abstract class SNMPSessionFrame extends JFrame {
 		});
 
 	}
+	
+	public void closeScanning() {
+		stopScanning();
+		stopSNMP();
+		closeWriter();
+	}
+	
 
-	public boolean closeApp() {
+	public boolean promptCloseApp() {
 		int result = showConfirmDialog("Would you like to save the configuration before closing?", "Application closing");
 		if(result == 0 || result == 1) {
 			String path = _confStorage.getPath();
@@ -495,6 +504,8 @@ public abstract class SNMPSessionFrame extends JFrame {
 	public abstract void stopSNMP();
 	
 	public abstract void doneSNMP(SwingWorker worker);
+	
+	public abstract void closeWriter();
 	
 	public void toggleNetScan(boolean isrun) {
 		((DevicePanel)_dataPane.getNetworkPanel()).toggleNetScan(isrun);

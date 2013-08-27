@@ -132,7 +132,8 @@ public class SNMPMenuBar extends JMenuBar {
 		JMenuItem exit = new JMenuItem("Exit", KeyEvent.VK_X);
 		exit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(_frame.closeApp())
+				if(_frame.promptCloseApp())
+					_frame.closeScanning();
 					System.exit(0);			
 			}
 			

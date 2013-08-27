@@ -13,6 +13,7 @@ import java.io.Writer;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
@@ -133,10 +134,20 @@ public class JSNMPWalker extends SNMPSessionFrame {
 					return null;
 				}
 			});
+			boolean isWindows = isWindows();
 			toggleNetScan(true);
+			//String networkAddress = utils.getNetworkAddress();
+			//String broadcastAddress = utils.getBroadcastAddress();
+			List<InetAddress> broadcastAddresses = getBroadcastAddresses();
 			for(InetAddress address: addresses) {
-				SwingWorker worker = new NetworkScanner(address, usePing, timeout, this);
-				_netScanService.submit(worker);
+				String hostAddress = address.getHostAddress();
+				//if(address.isLoopbackAddress() || hostAddress.equals(networkAddress) || hostAddress.equals(broadcastAddress)) {
+				if(address.isLoopbackAddress() || broadcastAddresses.contains(address)) {
+					_netScanLatch.countDown();
+				} else {
+					SwingWorker worker = new NetworkScanner(address, usePing, timeout, isWindows, this);
+					_netScanService.submit(worker);
+				}
 			}
 		} catch(Exception e) {
 			JOptionPane.showMessageDialog(null, "Can't scan the network", "Error", JOptionPane.ERROR_MESSAGE);
@@ -169,6 +180,29 @@ public class JSNMPWalker extends SNMPSessionFrame {
 		return addr;
 	}
 	
+	private List<InetAddress> getBroadcastAddresses() {
+		List<InetAddress> broadcastAddresses = new ArrayList<InetAddress>();
+		try {
+			Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+			while (interfaces.hasMoreElements()) {
+				NetworkInterface networkInterface = interfaces.nextElement();
+				if (!networkInterface.isLoopback()) {
+					for (InterfaceAddress interfaceAddress : networkInterface.getInterfaceAddresses()) {
+						InetAddress broadcast = interfaceAddress.getBroadcast();
+						if(broadcast != null) {
+							broadcastAddresses.add(broadcast);
+						}
+					}
+				}
+			}
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return broadcastAddresses;
+	}
+	
+	
 	@Override
 	public void stopScanning() {
 		if(_netScanService != null) {
@@ -186,13 +220,7 @@ public class JSNMPWalker extends SNMPSessionFrame {
 	}
 
 	public void runSNMP(ArrayList<SNMPTreeData> treeData, SNMPSessionOptionModel model, String filename) {
-		if (_writer != null) {
-			try {
-				_writer.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+		closeWriter();
 		SNMPFormatter.restart();
 		String header = _formatter.writeHeader();
 		appendResult(header);
@@ -276,10 +304,23 @@ public class JSNMPWalker extends SNMPSessionFrame {
 		}
 	}
 	
-	private static boolean isUnix() {
-		 
+	@Override
+	public void closeWriter() {
+		if (_writer != null) {
+			try {
+				_writer.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}	
+	}
+	
+	private static boolean isUnix() {		 
 		return (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0 );
- 
+	}
+	
+	private static boolean isWindows() {		 
+		return (OS.indexOf("win") >= 0); 
 	}
 	
 	private class TerminationThread extends Thread {
@@ -351,6 +392,5 @@ public class JSNMPWalker extends SNMPSessionFrame {
 		app.init();
 		app.setVisible(true);
 	}
-
 
 }

@@ -43,6 +43,7 @@ public class NetworkScanner extends SwingWorker<Object, Object> {
 	private InetAddress _address;
 	private boolean _usePing;
 	private int _timeout;
+	private boolean _isWindows;
 	private SNMPSessionFrame _panel;
 
 	public static final long NUM_OF_DEVICES_LIMIT = 1024;
@@ -53,17 +54,19 @@ public class NetworkScanner extends SwingWorker<Object, Object> {
 //		_panel = panel;
 //	}
 	
-	public NetworkScanner(InetAddress address, boolean usePing, int timeout, SNMPSessionFrame panel) {
+	public NetworkScanner(InetAddress address, boolean usePing, int timeout, boolean isWindows, SNMPSessionFrame panel) {
 		_address = address;
 		_usePing = usePing;
 		_timeout = timeout;
+		_isWindows = isWindows;
 		_panel = panel;
 	}
 
 	@Override
 	protected Object doInBackground() throws Exception {		
 		if(_usePing) {
-		    Process p = java.lang.Runtime.getRuntime().exec("ping -c 1 -W " + _timeout/1000 + " " + _address.getHostAddress());
+			String commString = "ping " + (_isWindows ? "-n " : "-c ") + "1 " + (_isWindows ? "-w " : "-W ") + _timeout/1000 + " " + _address.getHostAddress();
+		    Process p = java.lang.Runtime.getRuntime().exec(commString);
 		    int result = p.waitFor();
 		    //address is reachable
 		    if(result == 0) {

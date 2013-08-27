@@ -187,6 +187,7 @@ public class SNMPOutputPanel extends JPanel {
 		_logArea = new JTextWrapPane(logDoc, false);
 		_logArea.setEditable(false);
 		_logArea.setHighlighter(_hilit);
+		_logArea.setSelectedTextColor(logDoc.getForeground(_docAttributes));
 		logScrollPane.getViewport().add(_logArea);
 		logPane.add(logScrollPane, BorderLayout.CENTER);
 		
@@ -271,7 +272,14 @@ public class SNMPOutputPanel extends JPanel {
 			if(name.equals(TEXT_STOP)) {
 				_searcherThread.interrupt();
 			} else {
-				String str = _logArea.getText();
+				Document doc = _logArea.getDocument();
+				String str = "";
+				try {
+					str = doc.getText(0, doc.getLength());
+				} catch (BadLocationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				String searchKey = _searchField.getText();
 				if(searchKey.length() > 0) {
 					_searcherThread = new SNMPSearcher(str, searchKey);
@@ -390,7 +398,7 @@ public class SNMPOutputPanel extends JPanel {
 				int x = end - 1;
 				int row = position;
 				try {
-					if(!_logArea.getText(position + _currentSearchKey.length(), 1).matches("[\n\r]")) {
+					if(!_logArea.getDocument().getText(position + _currentSearchKey.length(), 1).matches("[\n\r]")) {
 						x = Utilities.getNextWord(_logArea, position);
 					}
 					row = Utilities.getRowStart(_logArea, position);
