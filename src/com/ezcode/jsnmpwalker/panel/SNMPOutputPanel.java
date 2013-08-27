@@ -55,6 +55,7 @@ import javax.swing.text.Utilities;
 
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 import com.ezcode.jsnmpwalker.action.ButtonAction;
+import com.ezcode.jsnmpwalker.layout.WrapLayout;
 
 public class SNMPOutputPanel extends JPanel {
 	private static final String TEXT_SEARCH = "Search";
@@ -144,7 +145,7 @@ public class SNMPOutputPanel extends JPanel {
 		logPane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "Output")));
 		StyleContext sc = StyleContext.getDefaultStyleContext();
 		_docAttributes = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.BLACK);
-		JPanel searchPane = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		JPanel searchPane = new JPanel(new WrapLayout(FlowLayout.LEFT));
 		_searchField = new JTextField();
 		_searchField.setPreferredSize(new Dimension(FIELD_WIDTH, 20));
 		SearchListener searchLis = new SearchListener(_searchField);

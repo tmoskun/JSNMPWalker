@@ -32,6 +32,7 @@ import java.util.Vector;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -63,6 +64,7 @@ import com.ezcode.jsnmpwalker.action.ButtonAction;
 import com.ezcode.jsnmpwalker.command.TreeNodeCommandStack;
 import com.ezcode.jsnmpwalker.data.SNMPSessionOptionModel;
 import com.ezcode.jsnmpwalker.data.SNMPTreeData;
+import com.ezcode.jsnmpwalker.layout.WrapLayout;
 import com.ezcode.jsnmpwalker.listener.SNMPRadioButtonListener;
 import com.ezcode.jsnmpwalker.menu.SNMPMenuBar;
 import com.ezcode.jsnmpwalker.panel.DataPanel;
@@ -176,7 +178,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 		JPanel centerPane = new JPanel(new BorderLayout());
 		
 		//Community and SNMP version fields
-		JPanel opts = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		JPanel opts = new JPanel(new WrapLayout(FlowLayout.LEFT));
 		opts.add(new JLabel("Community"));
 		final JTextField community = new JTextField(_optionModel.get(SNMPSessionOptionModel.COMMUNITY_KEY));
 		community.setPreferredSize(new Dimension(120, 20));
@@ -199,7 +201,8 @@ public abstract class SNMPSessionFrame extends JFrame {
 			}
 			
 		});
-		opts.add(new JLabel("         "));
+		//opts.add(new JLabel("         "));
+		opts.add(Box.createHorizontalStrut(10));
 		opts.add(new JLabel("SNMP version"));
 		ButtonGroup vergroup = new ButtonGroup();
 		

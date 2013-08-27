@@ -41,6 +41,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
+import com.ezcode.jsnmpwalker.layout.WrapLayout;
 import com.ezcode.jsnmpwalker.listener.NetworkDeviceDragGestureListener;
 import com.ezcode.jsnmpwalker.worker.NetworkScanner;
 
@@ -131,7 +132,7 @@ public class DevicePanel extends JPanel {
 		
 		formPane.add(paramsPane, BorderLayout.CENTER);
 		
-		JPanel scanButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		JPanel scanButtons = new JPanel(new WrapLayout(FlowLayout.LEFT));
 		_scanNetworkButton = new JButton("Scan for devices");
 		_scanNetworkButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
