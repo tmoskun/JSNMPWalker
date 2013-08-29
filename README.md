@@ -4,7 +4,7 @@ Version 2.0
 
 Description
 ---------------
-This is a Swing application to run multiple SNMP sessions simultaneously. 
+JSNMPWalker is a Swing application to run multiple SNMP sessions simultaneously. 
 The results might be saved into a file. 
 
 The uniquness of the application is that it shows both requests and responses, and shows errors in the walks, hence being useful for debugging purposes of networking software. 
