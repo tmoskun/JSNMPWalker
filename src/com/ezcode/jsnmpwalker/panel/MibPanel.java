@@ -318,7 +318,7 @@ public class MibPanel extends JPanel {
     	}
     	
         protected String getSearchKey() {
-    		String str = JOptionPane.showInputDialog(null, "Enter MIB name or IP", _searchKey);
+    		String str = (String) JOptionPane.showInputDialog(null, "Enter MIB name or IP", "Find", JOptionPane.PLAIN_MESSAGE, null, null, _searchKey);
     		if(str != null) {
     			str = str.trim(); 
     			if(str.length() == 0) {
