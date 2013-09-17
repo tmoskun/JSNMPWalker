@@ -8,9 +8,11 @@ package com.ezcode.jsnmpwalker.target;
 import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -25,6 +27,7 @@ import net.percederberg.mibble.value.ObjectIdentifierValue;
 
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 import com.ezcode.jsnmpwalker.SNMPTreeCellEditor;
+import com.ezcode.jsnmpwalker.data.TransferableTreeData;
 import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
 
 public class TreeDropTarget extends DropTarget {
@@ -59,18 +62,20 @@ public class TreeDropTarget extends DropTarget {
 	}
 	
 	private String formatData(Object item) {
-		if(item instanceof ObjectIdentifierValue) {
-			return item.toString();
-		} else if(item instanceof InetAddress) {
-			return ((InetAddress) item).getHostAddress();
+		if(item != null) {
+			if(item instanceof InetAddress) {
+				return ((InetAddress) item).getHostAddress();
+			} else {
+				return item.toString();
+			}
 		}
 		return "Undefined";
 	}
 	
-	private void insertTransferData(DropTargetDropEvent evt, Transferable transfer, DataFlavor flavor, int nodeType) {
+	
+	private void insertTransferData(DropTargetDropEvent evt, Object data, int nodeType) {
         try {
 			evt.acceptDrop(DnDConstants.ACTION_COPY);
-			Object data = transfer.getTransferData(flavor);
 			if(data != null && data.toString().length() > 0 && data instanceof List) {          		
             	List<Object> list = (List<Object>) data;
                 String[] item = new String[list.size()];
@@ -111,11 +116,25 @@ public class TreeDropTarget extends DropTarget {
 	@Override
     public synchronized void drop(DropTargetDropEvent evt) {
         Transferable transfer = evt.getTransferable();
-        if(transfer.isDataFlavorSupported(MIB_DATA_FLAVOR)) {
-        	insertTransferData(evt, transfer, MIB_DATA_FLAVOR, SNMPTreeCellEditor.OID_NODE);
-        } else if(transfer.isDataFlavorSupported(DEVICE_DATA_FLAVOR)) {
-        	insertTransferData(evt, transfer, DEVICE_DATA_FLAVOR, SNMPTreeCellEditor.IP_NODE);
-        }
+        try {
+	        if(transfer.isDataFlavorSupported(MIB_DATA_FLAVOR)) {
+	        	insertTransferData(evt, transfer.getTransferData(MIB_DATA_FLAVOR), SNMPTreeCellEditor.OID_NODE);
+	        } else if(transfer.isDataFlavorSupported(DEVICE_DATA_FLAVOR)) {
+	        	insertTransferData(evt, transfer.getTransferData(DEVICE_DATA_FLAVOR), SNMPTreeCellEditor.IP_NODE);
+	        } else if(transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+				Object data = transfer.getTransferData(DataFlavor.stringFlavor);
+				if(data instanceof TransferableTreeData) {
+			        TransferableTreeData treeData = (TransferableTreeData) data;
+			        insertTransferData(evt, treeData.getData(), treeData.getDataType());
+				}
+	        }
+        } catch (UnsupportedFlavorException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
+
+
+
 
 }

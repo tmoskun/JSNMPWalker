@@ -14,6 +14,8 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragSource;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -49,6 +51,8 @@ import com.ezcode.jsnmpwalker.command.InsertCommand;
 import com.ezcode.jsnmpwalker.command.PasteCommand;
 import com.ezcode.jsnmpwalker.command.RemoveCommand;
 import com.ezcode.jsnmpwalker.command.TreeNodeCommandStack;
+import com.ezcode.jsnmpwalker.listener.MibDragGestureListener;
+import com.ezcode.jsnmpwalker.listener.TreeDragGestureListener;
 import com.ezcode.jsnmpwalker.menu.SNMPPopupMenu;
 import com.ezcode.jsnmpwalker.target.TreeDropTarget;
 
@@ -108,6 +112,10 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 				}
 			}
 		});
+		DragSource treeDragSource = new DragSource();
+		treeDragSource.createDefaultDragGestureRecognizer(_tree,
+				DnDConstants.ACTION_COPY, new TreeDragGestureListener(_tree));
+		
 		_tree.setDropTarget(new TreeDropTarget(this));
 
 			
