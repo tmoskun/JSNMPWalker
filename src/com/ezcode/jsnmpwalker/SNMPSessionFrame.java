@@ -144,6 +144,8 @@ public abstract class SNMPSessionFrame extends JFrame {
 	}
 	
 	protected void init() {
+		
+		_outputPane = new SNMPOutputPanel(this);
 			
 		//left panel
 		JPanel leftPane = new JPanel(new BorderLayout());
@@ -302,10 +304,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 		
 		southPane.add(runp, BorderLayout.SOUTH);
 		leftPane.add(southPane, BorderLayout.SOUTH);
-		
-		_outputPane = new SNMPOutputPanel(this);
-		
-		
+					
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPane, _outputPane);
 		splitPane.setBorder(null);
 		splitPane.setOneTouchExpandable(true);

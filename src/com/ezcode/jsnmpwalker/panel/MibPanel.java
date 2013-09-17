@@ -14,6 +14,7 @@ import java.awt.dnd.DragSource;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -264,9 +265,10 @@ public class MibPanel extends JPanel {
 			 message = "Can't find file " + file.getAbsolutePath() + ": " + e.getMessage();
 		} catch (MibLoaderException e) {
             message = "Failed to load " + file.getAbsolutePath();
-            PrintStream out = new PrintStream(System.out);
-            e.getLog().printTo(out);
-            _outputPane.appendResult(out.toString());
+            ByteArrayOutputStream panelOut = new ByteArrayOutputStream();
+            e.getLog().printTo(new PrintStream(panelOut));
+            _outputPane.appendResult(panelOut.toString());
+            System.out.println(panelOut.toString());
 		}
         if (message != null) {
             JOptionPane.showMessageDialog(null, message, "Can't load MIB", JOptionPane.ERROR_MESSAGE);
