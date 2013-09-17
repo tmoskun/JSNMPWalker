@@ -45,7 +45,7 @@ Running
 
 _____________________________________________________________________
 
-Mibble 2.9.3 (2013-07-26). See http://www.mibble.org/ for more
+Mibble 2.9.3 (2013-09-16). See http://www.mibble.org/ for more
 information.
 
 Copyright (c) 2002-2013 Per Cederberg. Permission is granted to copy

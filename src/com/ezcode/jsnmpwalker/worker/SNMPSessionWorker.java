@@ -9,6 +9,8 @@ package com.ezcode.jsnmpwalker.worker;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -192,6 +194,26 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 		//--register since this is a walk
 	}
 	
+	public void get(String oid) {
+		PDU pdu = new PDU();
+		pdu.add(new VariableBinding(new OID(oid)));
+		pdu.setType(PDU.GET);
+		
+		int reqId = _snmp.getNextRequestID();
+		pdu.setRequestID(new Integer32(reqId));
+		send(pdu);
+	}
+	
+	public void getNext(String oid) {
+		PDU pdu = new PDU();
+		pdu.add(new VariableBinding(new OID(oid)));
+		int reqId = _snmp.getNextRequestID();
+		pdu.setRequestID(new Integer32(reqId));
+		pdu.setType(PDU.GETNEXT);
+		send(pdu);
+	}
+	
+/*
 	public void get(List<String> oids) {
 		PDU pdu = new PDU();
 		for (String oid: oids) {
@@ -214,6 +236,7 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 		pdu.setType(PDU.GETNEXT);
 		send(pdu);
 	}
+*/
 	
 	public void walk(String oid) {
 		Integer32 reqId = walkCore(oid);

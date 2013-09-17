@@ -142,7 +142,7 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 		_tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK), "none");
 		
 		this.getViewport().add(_tree);
-		this.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "SNMP Walk"));
+		this.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "SNMP Command Tree"));
 	}
 	
 	public JTree getTree() {

@@ -5,7 +5,7 @@ Known Issues
 ------------
 
   This is a list of the known issues as of the release of version 
-  2.9.3 (2013-07-26). The most up-to-date version of this list is 
+  2.9.3 (2013-09-16). The most up-to-date version of this list is 
   available from the project issue tracker 
   (http://github.com/cederberg/mibble/issues).
 
@@ -16,7 +16,7 @@ Suggested Improvements
 ----------------------
 
   This is a list of the suggested improvements as of the release of 
-  version 2.9.3 (2013-07-26). The most up-to-date version of this 
+  version 2.9.3 (2013-09-16). The most up-to-date version of this 
   list is available from the project issue tracker 
   (http://github.com/cederberg/mibble/issues).
 
@@ -45,7 +45,7 @@ Suggested Improvements
 
 _____________________________________________________________________
 
-Mibble 2.9.3 (2013-07-26). See http://www.mibble.org/ for more
+Mibble 2.9.3 (2013-09-16). See http://www.mibble.org/ for more
 information.
 
 Copyright (c) 2002-2013 Per Cederberg. Permission is granted to copy
