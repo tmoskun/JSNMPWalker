@@ -89,7 +89,7 @@ public class JSNMPWalker extends SNMPSessionFrame {
         loadDefaultMib("SNMPv2-SMI");
         loadDefaultMib("SNMPv2-TC");
         loadDefaultMib("HOST-RESOURCES-MIB");
-        refreshMibTree();
+        //refreshMibTree();
 	}
 	
 	@Override

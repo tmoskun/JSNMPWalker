@@ -9,6 +9,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Rectangle;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragSource;
 import java.awt.event.ActionEvent;
@@ -102,10 +103,10 @@ public class MibPanel extends JPanel {
             public void valueChanged(TreeSelectionEvent e) {
             	TreePath path = _mibTree.getSelectionPath();
             	if(path == null) {
-	            		showOid.setText("");
+	            	showOid.setText("");
 	            } else {
-	            		MibNode node = (MibNode) path.getLastPathComponent();
-	            		showOid.setText(node.getOid());
+	            	MibNode node = (MibNode) path.getLastPathComponent();
+	            	showOid.setText(node.getOid());
 	            }
             }
         });
@@ -222,17 +223,12 @@ public class MibPanel extends JPanel {
 	}
 	
 	
-	public void loadDefaultMib(String src) {
+	public void loadDefaultMib(String src) throws IOException, MibLoaderException {
         Mib mib = null;
-		try {
-			mib = _mibLoader.load(src);
-	        MibTreeBuilder.getInstance().addMib(mib);
-	        enableButtons(true);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (MibLoaderException e) {
-            e.getLog().printTo(new PrintStream(System.out));
-		}
+		mib = _mibLoader.load(src);
+	    MibTreeBuilder.getInstance().addMib(mib);
+	    enableButtons(true);
+	    refreshMibTree();
 	}
 
 	
@@ -261,6 +257,7 @@ public class MibPanel extends JPanel {
 			}
 	        MibTreeBuilder.getInstance().addMib(mib);
 	        enableButtons(true);
+            refreshMibTree();
 		} catch (IOException e) {
 			 message = "Can't find file " + file.getAbsolutePath() + ": " + e.getMessage();
 		} catch (MibLoaderException e) {
@@ -299,6 +296,66 @@ public class MibPanel extends JPanel {
 		enableButtons(false);
     }
     
+/*
+    public boolean containsMib(String mib) {
+    	DefaultMutableTreeNode root = (DefaultMutableTreeNode) _mibTree.getModel().getRoot();
+    	Enumeration<DefaultMutableTreeNode> mibs = root.children();
+    	while(mibs.hasMoreElements()) {
+    		DefaultMutableTreeNode node = mibs.nextElement();
+    		if(mib.equalsIgnoreCase(node.getUserObject().toString())) {
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+*/
+    public boolean containsMib(String mibFile) {
+    	return findMibFile(mibFile) != null;
+    }
+    
+    private MibNode findMibFile(String mibFile) {
+    	MibNode root = (MibNode) _mibTree.getModel().getRoot();
+    	Enumeration<MibNode> mibs = root.children();
+    	while(mibs.hasMoreElements()) {
+    		MibNode node = mibs.nextElement();
+    		if(mibFile.equalsIgnoreCase(node.getUserObject().toString())) {
+    			return node;
+    		} 
+    	}
+    	return null;
+    }
+      
+    public void findMibNode(String mibFile, String mibNode) {
+    	MibNode node = findMibFile(mibFile);
+    	TreePath prevResult = new TreePath(node.getPath());
+    	MibSearchIterator iter = new MibSearchIterator();
+    	findMibNode(iter, mibNode, prevResult);
+    }
+    
+    private TreePath findMibNode(Iterator iter, String key, TreePath prevResult) {
+    	TreePath path  = null;
+    	TreePath foundPath = null;
+		if(key != null && key.length() > 0) {
+			((MibSearchIterator) iter).init(prevResult);
+			while(iter.hasNext()) {
+				MibNode node = (MibNode) iter.next();
+				String name = node.getName().replaceAll("\\(\\d+\\)\\s*$", "").trim();
+				String oid = node.getOid().trim();
+				if(key.equalsIgnoreCase(name) || key.equals(oid)) {
+					path = new TreePath(node.getPath());
+					foundPath = path;
+					_mibTree.setSelectionPath(path);
+					Rectangle bounds = _mibTree.getPathBounds(path);
+					_mibTree.scrollRectToVisible(bounds);
+					break;
+				}
+			}
+			if(foundPath == null)
+				JOptionPane.showMessageDialog(null, "Key not found");
+		}
+		return foundPath;
+    }
+    
     public void refreshMibTree() {
         ((DefaultTreeModel) _mibTree.getModel()).reload();
         _mibTree.repaint();
@@ -335,6 +392,11 @@ public class MibPanel extends JPanel {
         }
         
         protected TreePath find(String key, TreePath prevResult) {
+			if(key != null && key.length() > 0) {
+				_searchKey = key;
+			}
+			return findMibNode(_mibSearch, key, prevResult);
+/*
         	TreePath path  = null;
         	TreePath foundPath = null;
 			if(key != null && key.length() > 0) {
@@ -350,6 +412,8 @@ public class MibPanel extends JPanel {
     					path = new TreePath(node.getPath());
     					foundPath = path;
     					_mibTree.setSelectionPath(path);
+    					Rectangle bounds = _mibTree.getPathBounds(path);
+    					_mibTree.scrollRectToVisible(bounds);
     					break;
     				}
     			}
@@ -361,6 +425,7 @@ public class MibPanel extends JPanel {
 //				JOptionPane.showMessageDialog(null, "Key not provided");
 //			}
 			return foundPath;
+*/
         }
         
         protected TreePath findNext() {
@@ -420,17 +485,22 @@ public class MibPanel extends JPanel {
     	private List<TreeNode> _nodes;
     	private Enumeration<TreeNode> _traversalOrder;
     	
+    	public MibSearchIterator() {
+    		this(true);
+    	}
+    	
     	public MibSearchIterator(boolean forward) {
     		//_next = next;
     		_forward = forward;
     		_nodes = new ArrayList<TreeNode>();
     	}
     	
-    	public void init() {
-    		init(null);
-    	}
     	
     	public void init(TreePath prevResult) {
+    		init(prevResult, false);
+    	}
+    	
+    	public void init(TreePath prevResult, boolean localMibOnly) {
     		_nodes.clear();
     		DefaultMutableTreeNode root = (DefaultMutableTreeNode) _mibTree.getModel().getRoot();
         	TreePath startPath = null;
@@ -445,17 +515,19 @@ public class MibPanel extends JPanel {
 
     		TreePath path = getPathAfterRoot(root, startPath);   		
         	setTraversal(path, startPath);
-    		int index = _mibTree.getModel().getIndexOfChild(root, path.getLastPathComponent());
-        	if(_forward) {
-	        	int last = root.getChildCount();
-				for(int i = index + 1; i < last; i++) {
-					_nodes.add(root.getChildAt(i));
-				}
-    		} else {
-    			for(int i = index - 1; i >= 0; i--) {
-					_nodes.add(root.getChildAt(i));
-    			}
-    		}
+        	if(!localMibOnly) {
+	    		int index = _mibTree.getModel().getIndexOfChild(root, path.getLastPathComponent());
+	        	if(_forward) {
+		        	int last = root.getChildCount();
+					for(int i = index + 1; i < last; i++) {
+						_nodes.add(root.getChildAt(i));
+					}
+	    		} else {
+	    			for(int i = index - 1; i >= 0; i--) {
+						_nodes.add(root.getChildAt(i));
+	    			}
+	    		}
+        	}
         	if(prevResult != null) {
         		next(); 
         	}

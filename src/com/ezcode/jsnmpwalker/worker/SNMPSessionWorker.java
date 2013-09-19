@@ -144,6 +144,7 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 		String oid = _treeData.getOid();
 		try {
 			Method meth = this.getClass().getMethod(command, String.class);
+			System.out.println(oid.getClass().getName());
 			meth.invoke(this, oid);
 		} catch(Exception e) {
 			System.out.println("Method " + command + " doesn't exist or can't invoke the method");

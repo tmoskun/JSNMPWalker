@@ -5,11 +5,22 @@ package com.ezcode.jsnmpwalker.data;
  * This Software is distributed under GPLv3 license
  */
 
+import java.io.IOException;
 import java.net.InetAddress;
+import java.text.ParseException;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.swing.JOptionPane;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
+
+import net.percederberg.mibble.MibLoaderException;
+
+import org.snmp4j.util.SimpleOIDTextFormat;
+
+import com.ezcode.jsnmpwalker.panel.MibPanel;
 
 
 public class SNMPTreeData {
@@ -77,7 +88,11 @@ public class SNMPTreeData {
 
 	public boolean isValid() {
 		return _command != null && _ip != null && _oid != null && _command.length() > 0 && _ip.length() > 0 && _oid.length() > 0
-				&& validateCommand(_command) && validateIP(_ip) && validateOID(_oid);
+				&& validateCommand(_command) && validateIP(_ip);
+	}
+	
+	public boolean isValidOID() {
+		return validateOID(_oid);
 	}
 	
 	private static boolean validateCommand(String command) {
@@ -88,12 +103,18 @@ public class SNMPTreeData {
 			InetAddress.getByName(ip);
 			return true;
 		} catch(Exception e) {
-			return false;
 		}
+		return false;
 	}
-	//TODO
+
 	private static boolean validateOID(String oid) {
-		return true;
+		try {
+			SimpleOIDTextFormat.parseOID(oid);
+			return true;
+		} catch (ParseException | NumberFormatException e) {
+	
+		}
+		return false;
 	}
 	
 	public String toString() {

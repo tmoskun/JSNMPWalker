@@ -21,6 +21,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.URL;
 import java.util.ArrayList;
@@ -29,6 +30,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
@@ -59,6 +62,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
+
+import net.percederberg.mibble.MibLoaderException;
 
 import com.ezcode.jsnmpwalker.action.ButtonAction;
 import com.ezcode.jsnmpwalker.command.TreeNodeCommandStack;
@@ -423,7 +428,13 @@ public abstract class SNMPSessionFrame extends JFrame {
 	}
 	
 	public void loadDefaultMib(String src) {
-		((MibPanel) _dataPane.getMibPanel()).loadDefaultMib(src);
+		try {
+			((MibPanel) _dataPane.getMibPanel()).loadDefaultMib(src);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (MibLoaderException e) {
+            e.getLog().printTo(new PrintStream(System.out));
+		}
 	}
 	
 	public String getSaveConfigPath() {
@@ -465,12 +476,17 @@ public abstract class SNMPSessionFrame extends JFrame {
 	protected  ArrayList<SNMPTreeData> getTreeData() {
 		ArrayList<SNMPTreeData> treeData = new ArrayList<SNMPTreeData>();
 		Object root = _treeModel.getRoot();
-		walk(treeData, getChildren(root));
+		if(!walk(treeData, getChildren(root))) {
+			if(JOptionPane.showConfirmDialog(null, "Some of the data was invalid. Continue with the rest?", "Invalid data", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
+				treeData.clear();
+			}
+		}
 		return treeData;
 	}
 	
 	
-	private void walk(ArrayList<SNMPTreeData> data, Enumeration<Object> children) {
+	private boolean walk(ArrayList<SNMPTreeData> data, Enumeration<Object> children) {
+		boolean valid = true;
 		while(children.hasMoreElements()) {
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode) children.nextElement();
 			if(_treeModel.isLeaf(node)) {
@@ -478,14 +494,43 @@ public abstract class SNMPSessionFrame extends JFrame {
 				//0 - root, 1 - command, 2 - ip, 3 - oid
 				if(path.length == 4) {
 					SNMPTreeData row = new SNMPTreeData(path);
-					if(row.isValid())
-						data.add(row);
+					if(row.isValid()) {
+						if(row.isValidOID())
+							data.add(row);
+						else {
+							valid = false;
+							String oid = row.getOid();
+							MibPanel mibPanel = (MibPanel) _dataPane.getMibPanel();
+							Pattern patt = Pattern.compile("^(.+)::(\\w+)(\\.\\d*)?$");
+							Matcher matt = patt.matcher(oid);
+							String msg = "OID translation is not supported for " + oid + ". ";
+							if(matt.find()) {
+								String mibFile = matt.group(1);
+								msg += "\nYou need to obtain the numerical OID from " + mibFile + ". ";
+								if(!mibPanel.containsMib(mibFile)) {
+									msg += "\nWould you like to load "+ mibFile +"?";
+									int result = JOptionPane.showConfirmDialog(null, msg, "OID translation not supported", JOptionPane.YES_NO_OPTION);
+									if(result == JOptionPane.YES_OPTION) {
+										try {
+											mibPanel.loadDefaultMib(mibFile);
+											mibPanel.findMibNode(mibFile, matt.group(2));
+										} catch (IOException | MibLoaderException e1) {
+											JOptionPane.showMessageDialog(null, "Can't find or load " + mibFile + ". Try to locate and load it manually");
+										}
+									}
+								} 
+								continue;
+							} 
+							JOptionPane.showMessageDialog(null, msg);
+						}
+					}
 				}
 			} else {		
 				Enumeration ch = getChildren(node);
-				walk(data, ch);
+				return walk(data, ch);
 			}
-		}		
+		}
+		return valid;
 	}
 	
 	private Enumeration getChildren(Object o) {
@@ -513,9 +558,11 @@ public abstract class SNMPSessionFrame extends JFrame {
 		((DevicePanel)_dataPane.getNetworkPanel()).toggleNetScan(isrun);
 	}
 	
+/*
 	public void refreshMibTree() {
 		((MibPanel) _dataPane.getMibPanel()).refreshMibTree();
 	}
+*/
 	
 	public void resetOutputSearch() {
 		_outputPane.resetSearch(true);
