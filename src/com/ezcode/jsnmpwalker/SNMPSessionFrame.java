@@ -26,8 +26,10 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -157,17 +159,17 @@ public abstract class SNMPSessionFrame extends JFrame {
 
 		JPanel snmpPane = new JPanel(new BorderLayout());
 		
+		//Data panel: MIBS and network devices
+		_dataPane = new DataPanel(this);
+		loadDefaultMibs();
+		
 		//Tree to set up data: commands, ips and oids
-		_treePane = new SNMPTreePanel(_commandStack);
+		_treePane = new SNMPTreePanel((MibPanel) _dataPane.getMibPanel(), _commandStack);
 		_tree = _treePane.getTree();
 		_treeModel = (DefaultTreeModel) _tree.getModel();
 		
 		snmpPane.add(_treePane, BorderLayout.CENTER);
 
-		//Data panel: MIBS and network devices
-		_dataPane = new DataPanel(this);
-		loadDefaultMibs();
-		
 		//((MibPanel) _dataPane.getMibPanel()).printPreorder();
 		
 		JSplitPane leftSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, snmpPane, _dataPane);
@@ -474,9 +476,12 @@ public abstract class SNMPSessionFrame extends JFrame {
 	}
 	
 	protected  ArrayList<SNMPTreeData> getTreeData() {
+		System.out.println("getTreeData");
 		ArrayList<SNMPTreeData> treeData = new ArrayList<SNMPTreeData>();
 		Object root = _treeModel.getRoot();
+		//walk(treeData, getChildren(root));
 		if(!walk(treeData, getChildren(root))) {
+			System.out.println("root " + root);
 			if(JOptionPane.showConfirmDialog(null, "Some of the data was invalid. Continue with the rest?", "Invalid data", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
 				treeData.clear();
 			}
@@ -484,57 +489,82 @@ public abstract class SNMPSessionFrame extends JFrame {
 		return treeData;
 	}
 	
-	
+
 	private boolean walk(ArrayList<SNMPTreeData> data, Enumeration<Object> children) {
 		boolean valid = true;
 		while(children.hasMoreElements()) {
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode) children.nextElement();
-			if(_treeModel.isLeaf(node)) {
-				TreeNode[] path = node.getPath();
-				//0 - root, 1 - command, 2 - ip, 3 - oid
-				if(path.length == 4) {
-					SNMPTreeData row = new SNMPTreeData(path);
-					if(row.isValid()) {
-						if(row.isValidOID())
-							data.add(row);
-						else {
-							valid = false;
-							String oid = row.getOid();
-							MibPanel mibPanel = (MibPanel) _dataPane.getMibPanel();
-							Pattern patt = Pattern.compile("^(.+)::(\\w+)(\\.\\d*)?$");
-							Matcher matt = patt.matcher(oid);
-							String msg = "OID translation is not supported for " + oid + ". ";
-							if(matt.find()) {
-								String mibFile = matt.group(1);
-								msg += "\nYou need to obtain the numerical OID from " + mibFile + ". ";
-								if(!mibPanel.containsMib(mibFile)) {
-									msg += "\nWould you like to load "+ mibFile +"?";
-									int result = JOptionPane.showConfirmDialog(null, msg, "OID translation not supported", JOptionPane.YES_NO_OPTION);
-									if(result == JOptionPane.YES_OPTION) {
-										try {
-											mibPanel.loadDefaultMib(mibFile);
-											mibPanel.findMibNode(mibFile, matt.group(2));
-										} catch (IOException | MibLoaderException e1) {
-											JOptionPane.showMessageDialog(null, "Can't find or load " + mibFile + ". Try to locate and load it manually");
-										}
-									}
-								} 
-								continue;
-							} 
-							JOptionPane.showMessageDialog(null, msg);
+			TreeNode[] path = node.getPath();
+			//0 - root, 1 - command, 2 - ip, 3 - oid
+			String command = (String) ((DefaultMutableTreeNode) path[1]).getUserObject();
+			if((path.length == 3 && SNMPTreeData.isMultiOIDCommand(command)) || (path.length == 4 && _treeModel.isLeaf(node))) {
+				SNMPTreeData row = new SNMPTreeData(path);
+				if(valid = row.isValidNode()) {
+					if(path.length == 4) {
+						String oid = (String) node.getUserObject();
+						if(valid &= verifyOID(oid)) {
+							row.addOID(oid);
 						}
+					} else if(path.length == 3) {
+						Enumeration<DefaultMutableTreeNode> oidNodes = getChildren(node);
+						while(oidNodes.hasMoreElements()) {
+							valid &= verifyOIDNode(oidNodes.nextElement());
+						}
+						if(valid) {
+							row.addAllOIDs(node);
+						}	
 					}
+					valid &= row.getOids().size() > 0;
 				}
+				if(valid) {
+					data.add(row);
+				} 
 			} else {		
 				Enumeration ch = getChildren(node);
-				return walk(data, ch);
+				valid &= walk(data, ch);
 			}
+		}
+		return valid;
+	}
+	
+	private boolean verifyOIDNode(DefaultMutableTreeNode node) {
+		return verifyOID((String) node.getUserObject());
+	}
+	
+	private boolean verifyOID(String oid) {
+		boolean valid = true;
+		if(!(valid = SNMPTreeData.isValidOID(oid))) {
+			checkMIB(oid);
 		}
 		return valid;
 	}
 	
 	private Enumeration getChildren(Object o) {
 		return ((DefaultMutableTreeNode) o).children(); 	
+	}
+	
+	private void checkMIB(String oid) {
+		MibPanel mibPanel = (MibPanel) _dataPane.getMibPanel();
+		String mibFile = SNMPTreeData.getMIB(oid);
+		Matcher matt = SNMPTreeData.MIB_PATTERN.matcher(oid);
+		String msg = "OID translation is not supported for " + oid + ". ";
+		if(mibFile != null) {
+			msg += "\nYou need to obtain the numerical OID from " + mibFile + ". ";
+			if(!mibPanel.containsMib(mibFile)) {
+				msg += "\nWould you like to load "+ mibFile +"?";
+				int result = JOptionPane.showConfirmDialog(null, msg, "OID translation not supported", JOptionPane.YES_NO_OPTION);
+				if(result == JOptionPane.YES_OPTION) {
+					try {
+						mibPanel.loadDefaultMib(mibFile);
+						//mibPanel.findMibNode(mibFile, matt.group(2));
+					} catch (IOException | MibLoaderException e1) {
+						JOptionPane.showMessageDialog(null, "Can't find or load " + mibFile + ". Try to locate and load it manually");
+					}
+				}
+			} 
+			return;
+		} 
+		JOptionPane.showMessageDialog(null, msg);
 	}
 	
 	public abstract void loadDefaultMibs();

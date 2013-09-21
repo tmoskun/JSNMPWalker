@@ -113,8 +113,6 @@ public class MibPanel extends JPanel {
 		DragSource mibDragSource = new DragSource();
 		mibDragSource.createDefaultDragGestureRecognizer(_mibTree,
 				DnDConstants.ACTION_COPY, new MibDragGestureListener(_mibTree));
-//		ds.createDefaultDragGestureRecognizer(oid,
-//				DnDConstants.ACTION_COPY, new MibDragGestureListener());
 		
 		add(mibTreePane, BorderLayout.CENTER);
 		add(oidPane, BorderLayout.SOUTH);
@@ -325,14 +323,14 @@ public class MibPanel extends JPanel {
     	return null;
     }
       
-    public void findMibNode(String mibFile, String mibNode) {
+    public TreePath findMibNode(String mibFile, String mibNode, boolean select) {
     	MibNode node = findMibFile(mibFile);
     	TreePath prevResult = new TreePath(node.getPath());
     	MibSearchIterator iter = new MibSearchIterator();
-    	findMibNode(iter, mibNode, prevResult);
+    	return findMibNode(iter, mibNode, prevResult, select);
     }
     
-    private TreePath findMibNode(Iterator iter, String key, TreePath prevResult) {
+    private TreePath findMibNode(Iterator iter, String key, TreePath prevResult, boolean select) {
     	TreePath path  = null;
     	TreePath foundPath = null;
 		if(key != null && key.length() > 0) {
@@ -344,9 +342,11 @@ public class MibPanel extends JPanel {
 				if(key.equalsIgnoreCase(name) || key.equals(oid)) {
 					path = new TreePath(node.getPath());
 					foundPath = path;
-					_mibTree.setSelectionPath(path);
-					Rectangle bounds = _mibTree.getPathBounds(path);
-					_mibTree.scrollRectToVisible(bounds);
+					if(select) {
+						_mibTree.setSelectionPath(path);
+						Rectangle bounds = _mibTree.getPathBounds(path);
+						_mibTree.scrollRectToVisible(bounds);
+					}
 					break;
 				}
 			}
@@ -395,7 +395,7 @@ public class MibPanel extends JPanel {
 			if(key != null && key.length() > 0) {
 				_searchKey = key;
 			}
-			return findMibNode(_mibSearch, key, prevResult);
+			return findMibNode(_mibSearch, key, prevResult, true);
 /*
         	TreePath path  = null;
         	TreePath foundPath = null;

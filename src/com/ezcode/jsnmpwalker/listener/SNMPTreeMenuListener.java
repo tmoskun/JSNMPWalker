@@ -38,6 +38,8 @@ public class SNMPTreeMenuListener extends MouseAdapter {
 			_panel.pasteData();
 		} else if(command.startsWith("Insert")) {
 			_panel.insertData();
+		} else if(command.startsWith("Translate")) {
+			_panel.translateData();
 		}
 	}
 		

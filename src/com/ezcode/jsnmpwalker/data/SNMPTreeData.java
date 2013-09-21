@@ -8,13 +8,18 @@ package com.ezcode.jsnmpwalker.data;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.JOptionPane;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 import net.percederberg.mibble.MibLoaderException;
 
@@ -26,21 +31,28 @@ import com.ezcode.jsnmpwalker.panel.MibPanel;
 public class SNMPTreeData {
 	
 	//public static final String[] COMMANDS = {"Get", "GetNext", "GetBulk", "Walk", "Table"};
-	public static final String[] COMMANDS = {"Get", "GetNext", "GetBulk", "Walk"};
-//	private static final String IP_PATTERN = 
-//	        "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
-//	        "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
-//	        "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
-//	        "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$";
-	
+	public static final String[] SINGLE_OID_COMMANDS = {"GetBulk", "Walk"};
+	public static final String[] MULTI_OID_COMMANDS = {"Get", "GetNext"};
+	public static final String[] COMMANDS = Arrays.copyOf(MULTI_OID_COMMANDS, MULTI_OID_COMMANDS.length + SINGLE_OID_COMMANDS.length);
+	static {
+		System.arraycopy(SINGLE_OID_COMMANDS, 0, COMMANDS, MULTI_OID_COMMANDS.length, SINGLE_OID_COMMANDS.length);
+	}
+	public static final Pattern MIB_PATTERN = Pattern.compile("^(.+)::(\\w+)((\\.\\d)*)?$");
+
 	private String _command = "";
 	private String _ip = "";
-	private String _oid = "";
+	private List<String> _oids = new ArrayList<String>();
 	
 	public SNMPTreeData(String command, String ip, String oid) {
 		_command = command;
 		_ip = ip;
-		_oid = oid;
+		_oids.add(oid);
+	}
+	
+	public SNMPTreeData(String command, String ip, List<String> oids) {
+		_command = command;
+		_ip = ip;
+		_oids.addAll(oids);
 	}
 	
 	public SNMPTreeData(TreeNode[] nodes, int commandnum, int ipnum, int oidnum) {
@@ -49,18 +61,17 @@ public class SNMPTreeData {
 				_command = (String) ((DefaultMutableTreeNode) nodes[commandnum]).getUserObject();
 			}
 			if(nodes[ipnum] instanceof DefaultMutableTreeNode) {
-				_ip = (String) ((DefaultMutableTreeNode) nodes[ipnum]).getUserObject();
-			}
-			if(nodes[oidnum] instanceof DefaultMutableTreeNode) {
-				_oid = (String) ((DefaultMutableTreeNode) nodes[oidnum]).getUserObject();
+				DefaultMutableTreeNode ip = (DefaultMutableTreeNode) nodes[ipnum];
+				_ip = (String) ip.getUserObject();
 			}			
 		}
 	}
+	
+		
 	//0 - root, 1 - command, 2 - ip, 3 - oid
 	public SNMPTreeData(TreeNode[] nodes) {
 		this(nodes, 1, 2, 3);
 	}
-	
 	
 	public String getCommand() {
 		return _command;
@@ -78,21 +89,32 @@ public class SNMPTreeData {
 		this._ip = _ip;
 	}
 
-	public String getOid() {
-		return _oid;
+	public List<String> getOids() {
+		return _oids;
+	}
+	
+	public void addOID(String oid) {
+		this._oids.add(oid);
+	}
+	
+	private void addAllOIDs(Enumeration<DefaultMutableTreeNode> oidNodes) {
+		while(oidNodes.hasMoreElements()) {
+			_oids.add((String) oidNodes.nextElement().getUserObject());
+		}
+	}
+	
+	public void addAllOIDs(DefaultMutableTreeNode ip) {
+		Enumeration<DefaultMutableTreeNode> oidNodes = ip.children();
+		addAllOIDs(oidNodes);
 	}
 
-	public void setOid(String _oid) {
-		this._oid = _oid;
-	}
-
-	public boolean isValid() {
-		return _command != null && _ip != null && _oid != null && _command.length() > 0 && _ip.length() > 0 && _oid.length() > 0
+	public boolean isValidNode() {
+		return _command != null && _ip != null && _command.length() > 0 && _ip.length() > 0 
 				&& validateCommand(_command) && validateIP(_ip);
 	}
 	
-	public boolean isValidOID() {
-		return validateOID(_oid);
+	public static boolean isValidOID(String oid) {
+		return validateOID(oid);
 	}
 	
 	private static boolean validateCommand(String command) {
@@ -117,8 +139,20 @@ public class SNMPTreeData {
 		return false;
 	}
 	
+	public static String getMIB(String textOID) {
+		Pattern patt = Pattern.compile("^(.+)::(\\w+)(\\.\\d*)?$");
+		Matcher matt = patt.matcher(textOID);
+		if(matt.find())
+			return matt.group(1);
+		return null;
+	}
+	
+	public static boolean isMultiOIDCommand(String command) {
+		return Arrays.asList(MULTI_OID_COMMANDS).contains(command);
+	}
+	
 	public String toString() {
-		return _command + ": " + _ip + " " + _oid;
+		return _command + ": " + _ip + " " + _oids.toString();
 	}
 	
 

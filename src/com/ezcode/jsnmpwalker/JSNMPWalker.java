@@ -233,9 +233,7 @@ public class JSNMPWalker extends SNMPSessionFrame {
 		} else {
 			_writer = null;
 		}
-
-		List<SNMPTreeData> data = this.getTreeData();
-		_snmpLatch = new CountDownLatch(data.size());
+		_snmpLatch = new CountDownLatch(treeData.size());
 		_snmpService = Executors.newFixedThreadPool(NUM_OF_THREADS);
 		_snmpTerminationThread = new TerminationThread(_snmpService, _snmpLatch, new Callable() {
 			public Object call() {
@@ -249,7 +247,7 @@ public class JSNMPWalker extends SNMPSessionFrame {
 		_snmpPublisher.start();
 		resetOutputSearch();
 		toggleSNMPRun(true);
-		for (SNMPTreeData d : data) {
+		for (SNMPTreeData d : treeData) {
 			SwingWorker worker = new SNMPSessionWorker(this, _formatter, d,
 					getOptionModel(), snmpQueue);
 			_snmpWorkers.add(worker);

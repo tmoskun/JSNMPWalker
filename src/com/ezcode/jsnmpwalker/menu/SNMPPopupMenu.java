@@ -6,6 +6,7 @@ package com.ezcode.jsnmpwalker.menu;
  */
 
 import java.awt.event.MouseListener;
+import java.util.regex.Matcher;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -66,9 +67,24 @@ public class SNMPPopupMenu extends JPopupMenu {
 						break;
 			default: break;			
 		}
-		if(type > SNMPTreeCellEditor.ROOT) {
-			//Edit
+		if(type > SNMPTreeCellEditor.ROOT) {			
 			if(_tree.getSelectionCount() == 1) {
+				//Translate from MIB
+				if(type == SNMPTreeCellEditor.OID_NODE) {
+					String oid = (String) ((DefaultMutableTreeNode) _path.getLastPathComponent()).getUserObject();
+					if(!SNMPTreeData.isValidOID(oid)) {
+						String mibFile = SNMPTreeData.getMIB(oid);
+						JMenuItem trans;
+						if(mibFile == null) {
+							trans = new JMenuItem("Translate from MIB");
+						} else {
+							trans = new JMenuItem("Translate from " + mibFile);
+						}
+						trans.addMouseListener(_treeListener);
+						this.add(trans);
+					}
+				}
+				//Edit
 				if(type == SNMPTreeCellEditor.COMMAND_NODE) {
 					this.add(buildCommandMenu("Edit", _treeListener));
 				} else {

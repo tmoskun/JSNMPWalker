@@ -141,22 +141,28 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	protected Object doInBackground() throws Exception {
 		String commandName = _treeData.getCommand();
 		String command = Character.toLowerCase(commandName.charAt(0)) + commandName.substring(1);
-		String oid = _treeData.getOid();
-		try {
-			Method meth = this.getClass().getMethod(command, String.class);
-			System.out.println(oid.getClass().getName());
-			meth.invoke(this, oid);
-		} catch(Exception e) {
-			System.out.println("Method " + command + " doesn't exist or can't invoke the method");
-			e.printStackTrace();
-		}
-		while(!this.isComplete()) {
+		List<String> oids = _treeData.getOids();
+		if(oids.size() > 0) {
 			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				//e.printStackTrace();
-			}//sleep for 100 ms
+				if(SNMPTreeData.isMultiOIDCommand(commandName)) {
+					Method meth = this.getClass().getDeclaredMethod(command, List.class);
+					meth.invoke(this, oids);
+				} else {
+					Method meth = this.getClass().getDeclaredMethod(command, String.class);
+					meth.invoke(this, oids.get(0));
+				}
+			} catch(Exception e) {
+				System.out.println("Method " + command + " doesn't exist or can't invoke the method");
+				e.printStackTrace();
+			}
+			while(!this.isComplete()) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					//e.printStackTrace();
+				}//sleep for 100 ms
+			}
 		}
 		return _panel;
 	}
@@ -194,7 +200,7 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 		send(pdu);
 		//--register since this is a walk
 	}
-	
+/*
 	public void get(String oid) {
 		PDU pdu = new PDU();
 		pdu.add(new VariableBinding(new OID(oid)));
@@ -213,8 +219,8 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 		pdu.setType(PDU.GETNEXT);
 		send(pdu);
 	}
+*/
 	
-/*
 	public void get(List<String> oids) {
 		PDU pdu = new PDU();
 		for (String oid: oids) {
@@ -237,7 +243,6 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 		pdu.setType(PDU.GETNEXT);
 		send(pdu);
 	}
-*/
 	
 	public void walk(String oid) {
 		Integer32 reqId = walkCore(oid);

@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
@@ -43,6 +44,9 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import net.percederberg.mibble.MibLoaderException;
+import net.percederberg.mibble.browser.MibNode;
+
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 import com.ezcode.jsnmpwalker.SNMPTreeCellEditor;
 import com.ezcode.jsnmpwalker.command.AddCommand;
@@ -51,18 +55,21 @@ import com.ezcode.jsnmpwalker.command.InsertCommand;
 import com.ezcode.jsnmpwalker.command.PasteCommand;
 import com.ezcode.jsnmpwalker.command.RemoveCommand;
 import com.ezcode.jsnmpwalker.command.TreeNodeCommandStack;
+import com.ezcode.jsnmpwalker.data.SNMPTreeData;
 import com.ezcode.jsnmpwalker.listener.MibDragGestureListener;
 import com.ezcode.jsnmpwalker.listener.TreeDragGestureListener;
 import com.ezcode.jsnmpwalker.menu.SNMPPopupMenu;
 import com.ezcode.jsnmpwalker.target.TreeDropTarget;
 
 public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
+	private MibPanel _mibPanel;
 	private JTree _tree;
 	private DefaultTreeModel _treeModel;
 	private TreeCellEditor _cellEditor;
 	private TreeNodeCommandStack _commandStack;
 	
-	public SNMPTreePanel(TreeNodeCommandStack commandStack) {
+	public SNMPTreePanel(MibPanel mibPanel, TreeNodeCommandStack commandStack) {
+		_mibPanel = mibPanel;
 		_commandStack = commandStack;
 		init();		
 	}
@@ -233,10 +240,48 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 		str.append((String)((DefaultMutableTreeNode) node).getUserObject());
 	}
 	
+	public void translateData() {
+		TreePath path = _tree.getSelectionPath();
+		if(path != null && path.getPathCount() == 4) {
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+			String textOid = (String) node.getUserObject();
+			Matcher matt = SNMPTreeData.MIB_PATTERN.matcher(textOid);
+			if(matt.find()) {
+				String mibFile = matt.group(1);
+				String name = matt.group(2);
+				String tail = matt.group(3);
+				if(!_mibPanel.containsMib(mibFile)) {
+					int result = JOptionPane.showConfirmDialog(null, mibFile + " is not loaded. Would you like to load " + mibFile + "?", "Mib file missing", JOptionPane.YES_NO_OPTION);
+					if(result == JOptionPane.YES_OPTION) {
+						try {
+							_mibPanel.loadDefaultMib(mibFile);
+							//mibPanel.findMibNode(mibFile, matt.group(2));
+						} catch (IOException | MibLoaderException e1) {
+							JOptionPane.showMessageDialog(null, "Can't find or load " + mibFile + ". Try to locate and load it manually");
+							return;
+						}
+					}
+				}
+				TreePath mibPath = _mibPanel.findMibNode(mibFile, name, true);
+				if(mibPath != null) {
+					MibNode mibNode = (MibNode) mibPath.getLastPathComponent();
+					String oid = mibNode.getOid() + ((tail == null)?"":tail);
+					pasteData(path, oid);
+				}
+			} else {
+				JOptionPane.showMessageDialog(null, "This entry doesn't have a MIB specified. Please, add it in the beginning with a '::' or translate it manually");
+			}
+		}
+	}
 	
 	public void pasteData() {
 		TreePath[] paths = _tree.getSelectionPaths();
 		pasteData(paths, null);
+	}
+	
+	public void pasteData(TreePath path, String str) {
+		if(path != null)
+			pasteData(new TreePath[] {path}, new String[] {str});
 	}
 	
 	public void pasteData(TreePath path, String[] str) {
@@ -250,7 +295,6 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 			_commandStack.add(paste);
 		}
 	}
-	
 	
 	public void insertData() {
 		TreePath[] paths = _tree.getSelectionPaths();
@@ -301,7 +345,6 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 			}
 		}
 	}
-	
 	
 	public void undo() {
 		_commandStack.undo();
