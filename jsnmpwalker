@@ -1,0 +1,18 @@
+#!/bin/sh
+
+java=$(which java | sed 's|/bin/.*||')
+if [ "x$java" = "x" ];then
+	echo "Java is not installed"
+	exit 1
+fi
+java_version=$(java -version 2>&1 |head -n 1 | cut -d\" -f 2 | sed -r 's|^([0-9])\.([0-9])(\..+)?$|\2|' | bc)
+if [ $java_version -lt 7 ];then
+	echo "The application requires Java 7 or above. Please, install it."
+	exit 1
+fi
+export JSNMPWALKER_HOME="/usr/local/lib/jsnmpwalker"
+cd $JSNMPWALKER_HOME
+app=$(find . -type f  -name "JSNMPWalker*.jar")
+echo "Starting JSNMPWalker..."
+java -jar $app
+echo "JSNMPWalker stopped"
