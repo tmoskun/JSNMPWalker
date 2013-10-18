@@ -9,6 +9,12 @@ The results might be saved into a file.
 
 The uniquness of the application is that it shows both requests and responses, and shows errors in the walks, hence being useful for debugging purposes of networking software. 
 
+Requirements
+------------
+Operating Systems: Windows, Linux, OS X (Mac)
+
+The application requires Java 7 installed. Go to http://www.java.com/en/download to download and install Java 7. 
+
 Running
 -----
 Go to the downloaded directory. Type in command line:

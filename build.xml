@@ -70,7 +70,6 @@
     </delete>
     <mkdir dir="bin" />
     <mkdir dir="classes" />
-    <mkdir dir="lib" />
   </target>
 
   <target name="compile-java" 
@@ -86,8 +85,10 @@ build.date = ${build.printdate}
       </manifest>
       <fileset dir="." includes="README.*" />
       <fileset dir="." includes="LICENSE-*.*" />
+  	  <fileset dir = "." includes="LICENSE/*" />
       <fileset file="lib/CIDRUtils/edazdarevic/commons/net/CIDRUtils.java" />
       <fileset dir="classes" />
+  	  <fileset dir="." includes="img/*"/>
       <zipgroupfileset dir="lib/mibble-2.9.3/lib" includes="*.jar" />
   	  <zipgroupfileset dir="lib/snmp4j/dist" includes="*.jar" />
   	</jar>

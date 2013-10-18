@@ -28,11 +28,12 @@ public class DataPanel extends JPanel {
 	public DataPanel(SNMPSessionFrame frame) {
 		super(new BorderLayout());
 		_frame = frame;
-		try {
-			_loadingDataImg = new JLabel(new ImageIcon(new URL("file:img/loader2.gif")));
+		java.net.URL imgURL = getClass().getResource("/img/loader2.gif");
+		if(imgURL != null) {
+			_loadingDataImg = new JLabel(new ImageIcon(imgURL));
 			_loadingDataImg.setVisible(false);
-		} catch(IOException ex) {
-			ex.printStackTrace();
+		} else {
+			System.out.println("image not found");
 		}
 		init();
 	}

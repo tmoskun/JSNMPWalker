@@ -93,11 +93,12 @@ public class SNMPOutputPanel extends JPanel {
 		_painter = new DefaultHighlighter.DefaultHighlightPainter(HILIT_COLOR);
 		_searchPositions = new TreeSet<Integer>();
 		_searchIterator = _searchPositions.iterator();
-		try {
-			_loadingImg = new JLabel(new ImageIcon(new URL("file:img/loader.gif")));
+		java.net.URL imgURL = getClass().getResource("/img/loader.gif");
+		if(imgURL != null) {
+			_loadingImg = new JLabel(new ImageIcon(imgURL));
 			_loadingImg.setVisible(false);
-		} catch(IOException ex) {
-			ex.printStackTrace();
+		} else {
+			System.out.println("image not found");
 		}
 		init();
 	}
