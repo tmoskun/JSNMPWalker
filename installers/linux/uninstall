@@ -20,7 +20,3 @@ xdg-icon-resource uninstall --size 128 jsnmpwalker
 echo "Removing the launcher..."
 sudo rm "$prefix/share/applications/jsnmpwalker.desktop"
 echo "The application is uninstalled"
-
-
-
-

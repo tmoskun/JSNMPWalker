@@ -10,6 +10,8 @@ if [ "x$java" = "x" ];then
 		exit 1
 	fi
 fi
+curr=$(pwd | grep '/installers/linux$')
+if [ -n $curr ]; then cd ../../; fi
 app=$(find . -type f  -name "JSNMPWalker*.jar" -prune)
 compile="N"
 if [ "x$app" = "x" ];then
