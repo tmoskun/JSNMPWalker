@@ -476,12 +476,10 @@ public abstract class SNMPSessionFrame extends JFrame {
 	}
 	
 	protected  ArrayList<SNMPTreeData> getTreeData() {
-		System.out.println("getTreeData");
 		ArrayList<SNMPTreeData> treeData = new ArrayList<SNMPTreeData>();
 		Object root = _treeModel.getRoot();
 		//walk(treeData, getChildren(root));
 		if(!walk(treeData, getChildren(root))) {
-			System.out.println("root " + root);
 			if(JOptionPane.showConfirmDialog(null, "Some of the data was invalid. Continue with the rest?", "Invalid data", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
 				treeData.clear();
 			}
