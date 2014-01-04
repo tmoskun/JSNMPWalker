@@ -38,7 +38,6 @@ if [ $compile = 'Y' ] || [ $compile = 'y' ]; then
 fi
 echo "Installing JSNMPWalker..."
 prefix="/usr/local"
-if [ -f /etc/debian_version ] || [ -f /etc/fedora_release ]; then prefix="/usr/local"; else prefix="/usr"; fi
 echo "The appication will be installed into $prefix"
 jsnmpwalkerdir=$prefix/lib/jsnmpwalker
 if [ -d $jsnmpwalkerdir ]; then
