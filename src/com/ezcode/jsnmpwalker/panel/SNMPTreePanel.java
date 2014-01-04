@@ -338,7 +338,7 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 	public void removeNodes() {
 		TreePath[] paths = _tree.getSelectionPaths();
 		if(paths != null && paths.length > 0 && paths[0].getPathCount() > 1) {
-			int result = JOptionPane.showConfirmDialog(null, "Do you want to delete the node(s)?");
+			int result = JOptionPane.showConfirmDialog(null, "Do you want to delete the selection?");
 			if(result == JOptionPane.YES_OPTION) {
 				TreeNodeCommandStack.Command remove = new RemoveCommand(this, paths);
 				_commandStack.add(remove);
