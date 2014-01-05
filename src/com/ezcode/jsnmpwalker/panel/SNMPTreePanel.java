@@ -334,9 +334,7 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 		}
 	}
 	
-	
-	public void removeNodes() {
-		TreePath[] paths = _tree.getSelectionPaths();
+	public void removeNodes(TreePath[] paths) {
 		if(paths != null && paths.length > 0 && paths[0].getPathCount() > 1) {
 			int result = JOptionPane.showConfirmDialog(null, "Do you want to delete the selection?");
 			if(result == JOptionPane.YES_OPTION) {
@@ -345,6 +343,16 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 			}
 		}
 	}
+	
+	public void removeNode(TreePath path) {
+		removeNodes(new TreePath[] {path});
+	}
+	
+	public void removeNodes() {
+		TreePath[] paths = _tree.getSelectionPaths();
+		removeNodes(paths);
+	}
+	
 	
 	public void undo() {
 		_commandStack.undo();

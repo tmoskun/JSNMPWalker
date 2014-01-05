@@ -64,6 +64,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 import net.percederberg.mibble.MibLoaderException;
 
@@ -256,6 +257,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 		_runSNMPButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				String logFile = _outputPane.getLogFile();
+				//_treePane.getTree().cancelEditing();
 				ArrayList<SNMPTreeData> treeData = getTreeData();
 				if(treeData.isEmpty()) {
 					JOptionPane.showMessageDialog(null, "Commands, IP or OID data are not provided", "Data not provided", JOptionPane.WARNING_MESSAGE);
@@ -492,34 +494,37 @@ public abstract class SNMPSessionFrame extends JFrame {
 		boolean valid = true;
 		while(children.hasMoreElements()) {
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode) children.nextElement();
-			TreeNode[] path = node.getPath();
-			//0 - root, 1 - command, 2 - ip, 3 - oid
-			String command = (String) ((DefaultMutableTreeNode) path[1]).getUserObject();
-			if((path.length == 3 && SNMPTreeData.isMultiOIDCommand(command)) || (path.length == 4 && _treeModel.isLeaf(node))) {
-				SNMPTreeData row = new SNMPTreeData(path);
-				if(valid = row.isValidNode()) {
-					if(path.length == 4) {
-						String oid = (String) node.getUserObject();
-						if(valid &= verifyOID(oid)) {
-							row.addOID(oid);
+			Object obj = node.getUserObject();
+			if(obj != null && obj.toString().length() >  0) {
+				TreeNode[] path = node.getPath();
+				//0 - root, 1 - command, 2 - ip, 3 - oid
+				String command = (String) ((DefaultMutableTreeNode) path[1]).getUserObject();
+				if((path.length == 3 && SNMPTreeData.isMultiOIDCommand(command)) || (path.length == 4 && _treeModel.isLeaf(node))) {
+					SNMPTreeData row = new SNMPTreeData(path);
+					if(valid = row.isValidNode()) {
+						if(path.length == 4) {
+							String oid = (String) node.getUserObject();
+							if(valid &= verifyOID(oid)) {
+								row.addOID(oid);
+							}
+						} else if(path.length == 3) {
+							Enumeration<DefaultMutableTreeNode> oidNodes = getChildren(node);
+							while(oidNodes.hasMoreElements()) {
+								valid &= verifyOIDNode(oidNodes.nextElement());
+							}
+							if(valid) {
+								row.addAllOIDs(node);
+							}	
 						}
-					} else if(path.length == 3) {
-						Enumeration<DefaultMutableTreeNode> oidNodes = getChildren(node);
-						while(oidNodes.hasMoreElements()) {
-							valid &= verifyOIDNode(oidNodes.nextElement());
-						}
-						if(valid) {
-							row.addAllOIDs(node);
-						}	
+						valid &= row.getOids().size() > 0;
 					}
-					valid &= row.getOids().size() > 0;
+					if(valid) {
+						data.add(row);
+					} 
+				} else {		
+					Enumeration ch = getChildren(node);
+					valid &= walk(data, ch);
 				}
-				if(valid) {
-					data.add(row);
-				} 
-			} else {		
-				Enumeration ch = getChildren(node);
-				valid &= walk(data, ch);
 			}
 		}
 		return valid;

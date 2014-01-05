@@ -8,6 +8,8 @@ package com.ezcode.jsnmpwalker;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.EventObject;
@@ -137,10 +139,29 @@ public class SNMPTreeCellEditor implements TreeCellEditor {
 				public void actionPerformed(ActionEvent event) {
 				    if (stopCellEditing()) {		
 				        fireEditingStopped();
-				    }		
+				    } 
 				}	
 			};
 			addActionListener(_editListener);
+/*
+			this.addFocusListener(new FocusListener() {
+
+				@Override
+				public void focusGained(FocusEvent e) {
+					System.out.println("focus gained");
+					
+				}
+
+				@Override
+				public void focusLost(FocusEvent e) {
+					System.out.println("focus lost, value " + _value);
+					if(_value.length() == 0) {
+						System.out.println(e.getSource());
+					}
+				}
+				
+			});
+*/
 			this.addMouseListener(new MouseAdapter() {
 				//remove text when the field is clicked, if the text is default
 				public void mousePressed(MouseEvent event) {
@@ -162,8 +183,14 @@ public class SNMPTreeCellEditor implements TreeCellEditor {
 		@Override
 		public void cancelCellEditing() {
 //			if(_tree.isEditing()) {
+			
+//			if(_value.length() == 0) {
+//				_commandStack.undo();
+//			} else {
 				setText("");
 				_command = null;
+//			}
+			
 //			} else {
 //				stopCellEditing();
 //				fireEditingStopped();
