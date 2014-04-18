@@ -44,7 +44,7 @@ public class SNMPFormatter {
 	}
 	
 	public String getHeader() {
-		return "\nTime\tSession\tType\tReqestId\tStatus\tSyntax\tOID\tValue";
+		return "\nTime\tSession\tType\tRequestId\tStatus\tSyntax\tOID\tValue";
 	}
 	
 	public static String pduToString(Address session, PDU pdu, long elapsedTime) {
