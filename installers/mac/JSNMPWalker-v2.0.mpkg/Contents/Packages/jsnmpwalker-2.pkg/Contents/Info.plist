@@ -5,9 +5,9 @@
 	<key>CFBundleIdentifier</key>
 	<string>com.ezcode.jsnmpwalker.lib.pkg</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>2.0</string>
 	<key>IFMajorVersion</key>
-	<integer>1</integer>
+	<integer>2</integer>
 	<key>IFMinorVersion</key>
 	<integer>0</integer>
 	<key>IFPkgFlagAllowBackRev</key>
@@ -15,13 +15,13 @@
 	<key>IFPkgFlagAuthorizationAction</key>
 	<string>RootAuthorization</string>
 	<key>IFPkgFlagDefaultLocation</key>
-	<string>/usr/loca/lib/jsnmpwalker</string>
+	<string>/usr/local/lib/jsnmpwalker</string>
 	<key>IFPkgFlagFollowLinks</key>
 	<true/>
 	<key>IFPkgFlagInstallFat</key>
 	<false/>
 	<key>IFPkgFlagInstalledSize</key>
-	<integer>0</integer>
+	<integer>5412</integer>
 	<key>IFPkgFlagIsRequired</key>
 	<false/>
 	<key>IFPkgFlagOverwritePermissions</key>

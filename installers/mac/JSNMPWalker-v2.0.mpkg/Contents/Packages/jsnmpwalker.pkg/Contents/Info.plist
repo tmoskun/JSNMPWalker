@@ -5,9 +5,9 @@
 	<key>CFBundleIdentifier</key>
 	<string>com.ezcode.jsnmpwalker.app.pkg</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>2.0</string>
 	<key>IFMajorVersion</key>
-	<integer>1</integer>
+	<integer>2</integer>
 	<key>IFMinorVersion</key>
 	<integer>0</integer>
 	<key>IFPkgFlagAllowBackRev</key>
@@ -27,7 +27,7 @@
 	<key>IFPkgFlagOverwritePermissions</key>
 	<false/>
 	<key>IFPkgFlagRelocatable</key>
-	<true/>
+	<false/>
 	<key>IFPkgFlagRestartAction</key>
 	<string>None</string>
 	<key>IFPkgFlagRootVolumeOnly</key>
@@ -36,10 +36,5 @@
 	<false/>
 	<key>IFPkgFormatVersion</key>
 	<real>0.10000000149011612</real>
-	<key>IFPkgPathMappings</key>
-	<dict>
-		<key>./JSNMPWalker.app</key>
-		<string>{pkmk-token-115}</string>
-	</dict>
 </dict>
 </plist>

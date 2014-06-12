@@ -5,9 +5,9 @@
 	<key>CFBundleIdentifier</key>
 	<string>com.ezcode.jsnmpwalker.command.pkg</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>2.0</string>
 	<key>IFMajorVersion</key>
-	<integer>1</integer>
+	<integer>2</integer>
 	<key>IFMinorVersion</key>
 	<integer>0</integer>
 	<key>IFPkgFlagAllowBackRev</key>
