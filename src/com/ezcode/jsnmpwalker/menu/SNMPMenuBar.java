@@ -32,7 +32,7 @@ import com.ezcode.jsnmpwalker.command.TreeNodeCommandStack;
 import com.ezcode.jsnmpwalker.data.SNMPSessionOptionModel;
 import com.ezcode.jsnmpwalker.listener.SNMPEditListener;
 import com.ezcode.jsnmpwalker.listener.SNMPRadioButtonListener;
-import com.ezcode.jsnmpwalker.panel.MibPanel;
+import com.ezcode.jsnmpwalker.panel.MibTreePanel;
 import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
 import com.ezcode.jsnmpwalker.storage.SNMPConfigurationStorage;
 

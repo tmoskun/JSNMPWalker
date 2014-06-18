@@ -20,7 +20,7 @@ import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 
 public class DataPanel extends JPanel {
 	private SNMPSessionFrame _frame;
-	private MibPanel _mibPane;
+	private MibTreePanel _mibPane;
 	private DevicePanel _networkPane;
 	
 	private JLabel _loadingDataImg;
@@ -44,7 +44,7 @@ public class DataPanel extends JPanel {
 		dataLabel.setFont(labelFont);
 		this.add(dataLabel, BorderLayout.NORTH);
 		
-		_mibPane = new MibPanel(_loadingDataImg, (SNMPOutputPanel) _frame.getOutputPane());
+		_mibPane = new MibTreePanel(_loadingDataImg, (MibBrowserPanel) _frame.getMibBrowserPane(), (SNMPOutputPanel) _frame.getOutputPane());
 		_networkPane = new DevicePanel(_frame, _loadingDataImg);
 		
 		JSplitPane dataSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, _mibPane, _networkPane);

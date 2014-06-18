@@ -128,8 +128,10 @@ public class TreeDropTarget extends DropTarget {
 			        insertTransferData(evt, treeData.getData(), treeData.getDataType());
 				}
 	        }
-        } catch (UnsupportedFlavorException | IOException e) {
+        } catch (UnsupportedFlavorException e) {
 			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}

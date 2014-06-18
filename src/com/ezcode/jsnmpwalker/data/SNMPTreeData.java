@@ -25,7 +25,7 @@ import net.percederberg.mibble.MibLoaderException;
 
 import org.snmp4j.util.SimpleOIDTextFormat;
 
-import com.ezcode.jsnmpwalker.panel.MibPanel;
+import com.ezcode.jsnmpwalker.panel.MibTreePanel;
 
 
 public class SNMPTreeData {
@@ -133,8 +133,10 @@ public class SNMPTreeData {
 		try {
 			SimpleOIDTextFormat.parseOID(oid);
 			return true;
-		} catch (ParseException | NumberFormatException e) {
+		} catch (ParseException e) {
 	
+		} catch (NumberFormatException e) {
+			
 		}
 		return false;
 	}

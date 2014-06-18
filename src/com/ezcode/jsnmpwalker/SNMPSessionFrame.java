@@ -77,7 +77,8 @@ import com.ezcode.jsnmpwalker.listener.SNMPRadioButtonListener;
 import com.ezcode.jsnmpwalker.menu.SNMPMenuBar;
 import com.ezcode.jsnmpwalker.panel.DataPanel;
 import com.ezcode.jsnmpwalker.panel.DevicePanel;
-import com.ezcode.jsnmpwalker.panel.MibPanel;
+import com.ezcode.jsnmpwalker.panel.MibBrowserPanel;
+import com.ezcode.jsnmpwalker.panel.MibTreePanel;
 import com.ezcode.jsnmpwalker.panel.SNMPOutputPanel;
 import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
 import com.ezcode.jsnmpwalker.storage.SNMPConfigurationStorage;
@@ -93,6 +94,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 	private DefaultTreeModel _treeModel;
 	private SNMPTreePanel _treePane;
 	private DataPanel _dataPane;
+	private MibBrowserPanel _mibBrowserPane;
 	private SNMPOutputPanel _outputPane;
 	
 	private TreeNodeCommandStack _commandStack;
@@ -153,6 +155,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 	
 	protected void init() {
 		
+		_mibBrowserPane = new MibBrowserPanel();
 		_outputPane = new SNMPOutputPanel(this);
 			
 		//left panel
@@ -165,7 +168,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 		loadDefaultMibs();
 		
 		//Tree to set up data: commands, ips and oids
-		_treePane = new SNMPTreePanel((MibPanel) _dataPane.getMibPanel(), _commandStack);
+		_treePane = new SNMPTreePanel((MibTreePanel) _dataPane.getMibPanel(), _commandStack);
 		_tree = _treePane.getTree();
 		_treeModel = (DefaultTreeModel) _tree.getModel();
 		
@@ -313,19 +316,26 @@ public abstract class SNMPSessionFrame extends JFrame {
 		
 		southPane.add(runp, BorderLayout.SOUTH);
 		leftPane.add(southPane, BorderLayout.SOUTH);
-					
-		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPane, _outputPane);
+				
+		//right panel
+		JSplitPane rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, _mibBrowserPane, _outputPane);
+		Dimension rightPanelMinSize = new Dimension(300, 200);
+		rightSplitPane.setOneTouchExpandable(true);
+		rightSplitPane.setDividerLocation(HEIGHT/3);
+		_mibBrowserPane.setMinimumSize(rightPanelMinSize);
+		_outputPane.setMinimumSize(rightPanelMinSize);
+		
+		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPane, rightSplitPane);
 		splitPane.setBorder(null);
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setDividerLocation(WIDTH/2);
 		Dimension panelMinSize = new Dimension(300, 800);
 		leftPane.setMinimumSize(panelMinSize);
-		_outputPane.setMinimumSize(panelMinSize);
-		
+		rightSplitPane.setMinimumSize(panelMinSize);
 		getContentPane().add(splitPane);
 		
 		//Menu Bar
-		this.setJMenuBar(new SNMPMenuBar(this, ((MibPanel)_dataPane.getMibPanel()).getMibMenu(), _commandStack));
+		this.setJMenuBar(new SNMPMenuBar(this, ((MibTreePanel)_dataPane.getMibPanel()).getMibMenu(), _commandStack));
 			
 		addWindowListener(new WindowAdapter() {
 			
@@ -433,7 +443,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 	
 	public void loadDefaultMib(String src) {
 		try {
-			((MibPanel) _dataPane.getMibPanel()).loadDefaultMib(src);
+			((MibTreePanel) _dataPane.getMibPanel()).loadDefaultMib(src);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (MibLoaderException e) {
@@ -547,7 +557,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 	}
 	
 	private void checkMIB(String oid) {
-		MibPanel mibPanel = (MibPanel) _dataPane.getMibPanel();
+		MibTreePanel mibPanel = (MibTreePanel) _dataPane.getMibPanel();
 		String mibFile = SNMPTreeData.getMIB(oid);
 		Matcher matt = SNMPTreeData.MIB_PATTERN.matcher(oid);
 		String msg = "OID translation is not supported for " + oid + ". ";
@@ -560,8 +570,10 @@ public abstract class SNMPSessionFrame extends JFrame {
 					try {
 						mibPanel.loadDefaultMib(mibFile);
 						//mibPanel.findMibNode(mibFile, matt.group(2));
-					} catch (IOException | MibLoaderException e1) {
-						JOptionPane.showMessageDialog(null, "Can't find or load " + mibFile + ". Try to locate and load it manually");
+					} catch (IOException e1) {
+						JOptionPane.showMessageDialog(null, "Can't find " + mibFile + ". Try to locate and load it manually");
+					} catch (MibLoaderException e1) {
+						JOptionPane.showMessageDialog(null, "Can't load " + mibFile + ". Try to locate and load it manually");
 					}
 				}
 			} 
@@ -609,6 +621,10 @@ public abstract class SNMPSessionFrame extends JFrame {
 	
 	public JPanel getOutputPane() {
 		return _outputPane;
+	}
+	
+	public JPanel getMibBrowserPane() {
+		return _mibBrowserPane;
 	}
 	
 	public void addAddress(InetAddress address) {

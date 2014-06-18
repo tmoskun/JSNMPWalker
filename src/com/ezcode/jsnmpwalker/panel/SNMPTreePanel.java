@@ -62,13 +62,13 @@ import com.ezcode.jsnmpwalker.menu.SNMPPopupMenu;
 import com.ezcode.jsnmpwalker.target.TreeDropTarget;
 
 public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
-	private MibPanel _mibPanel;
+	private MibTreePanel _mibPanel;
 	private JTree _tree;
 	private DefaultTreeModel _treeModel;
 	private TreeCellEditor _cellEditor;
 	private TreeNodeCommandStack _commandStack;
 	
-	public SNMPTreePanel(MibPanel mibPanel, TreeNodeCommandStack commandStack) {
+	public SNMPTreePanel(MibTreePanel mibPanel, TreeNodeCommandStack commandStack) {
 		_mibPanel = mibPanel;
 		_commandStack = commandStack;
 		init();		
@@ -256,8 +256,11 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 						try {
 							_mibPanel.loadDefaultMib(mibFile);
 							//mibPanel.findMibNode(mibFile, matt.group(2));
-						} catch (IOException | MibLoaderException e1) {
-							JOptionPane.showMessageDialog(null, "Can't find or load " + mibFile + ". Try to locate and load it manually");
+						} catch (IOException e1) {
+							JOptionPane.showMessageDialog(null, "Can't find " + mibFile + ". Try to locate and load it manually");
+							return;
+						} catch (MibLoaderException e1) {
+							JOptionPane.showMessageDialog(null, "Can't load " + mibFile + ". Try to locate and load it manually");
 							return;
 						}
 					}
