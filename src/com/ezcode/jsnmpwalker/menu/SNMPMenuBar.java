@@ -274,7 +274,7 @@ public class SNMPMenuBar extends JMenuBar {
 		add(editmenu);
 		add(optmenu);
 		
-		add(Box.createHorizontalStrut(SNMPSessionFrame.WIDTH/7));
+		//add(Box.createHorizontalStrut(SNMPSessionFrame.WIDTH/7));
 
 		//_mibMenu = ((MibPanel) _dataPane.getMibPanel()).getMibMenu();
 		add(_mibMenu);

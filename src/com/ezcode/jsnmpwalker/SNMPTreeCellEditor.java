@@ -53,7 +53,7 @@ public class SNMPTreeCellEditor implements TreeCellEditor {
 	    TreePath path = tree.getPathForRow(row);
 	    if(value == null || value.toString() == null || value.toString().length() == 0) {
 		    switch(path.getPathCount()) {
-		    	case COMMAND_NODE: _fieldEditor.setText("Add Command..."); break;
+		    	case COMMAND_NODE: _fieldEditor.setText("Add Method..."); break;
 		    	case IP_NODE: _fieldEditor.setText("Add IP..."); break;
 		    	case OID_NODE: _fieldEditor.setText("Add OID..."); break;
 		    	default: break;

@@ -76,7 +76,7 @@ public class MibTreePanel extends JPanel {
 	
 	public MibTreePanel(JLabel loadingDataImg, MibBrowserPanel mibBrowserPane, SNMPOutputPanel outputPane) {
 		super(new BorderLayout());
-		setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "MIB Browser"));
+		setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "MIB Tree"));
 		_loadingDataImg = loadingDataImg;
 		_mibBrowserPane = mibBrowserPane;
 		_outputPane = outputPane;

@@ -409,7 +409,7 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
     			if(row > SNMPTreeCellEditor.ROOT) {
     				if(value == null || value.toString().length() == 0) {
     					switch(level) {
-			    			//case COMMAND_NODE: value = "Add Command..."; break;
+			    			//case COMMAND_NODE: value = "Add Method..."; break;
 			    			case SNMPTreeCellEditor.IP_NODE: value = "Add IP..."; break;
 			    			case SNMPTreeCellEditor.OID_NODE: value = "Add OID..."; break;
 			    			default: break;

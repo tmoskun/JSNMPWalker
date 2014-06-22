@@ -51,7 +51,7 @@ public class SNMPPopupMenu extends JPopupMenu {
 		//Add
 		switch(type) {
 			case SNMPTreeCellEditor.ROOT: 
-						this.add(buildCommandMenu("Add Command", _treeListener));
+						this.add(buildCommandMenu("Add Method", _treeListener));
 						break;
 			case SNMPTreeCellEditor.COMMAND_NODE:
 						JMenuItem addip = new JMenuItem("Add IP");
