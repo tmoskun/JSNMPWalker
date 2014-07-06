@@ -11,13 +11,13 @@ import java.awt.event.ActionListener;
 import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 
-import com.ezcode.jsnmpwalker.data.SNMPSessionOptionModel;
+import com.ezcode.jsnmpwalker.data.SNMPOptionModel;
 
 public class SNMPRadioButtonListener implements ActionListener {
 	private String _key;
-	private SNMPSessionOptionModel _optionModel;
+	private SNMPOptionModel _optionModel;
 	
-	public SNMPRadioButtonListener(SNMPSessionOptionModel optionModel, String k) {
+	public SNMPRadioButtonListener(SNMPOptionModel optionModel, String k) {
 		_optionModel = optionModel;
 		_key = k;
 	}

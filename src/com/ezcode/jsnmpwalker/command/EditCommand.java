@@ -15,9 +15,9 @@ import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 import com.ezcode.jsnmpwalker.command.TreeNodeCommandStack.Command;
 
 public class EditCommand implements Command {
-	private String _savedData;
-	private String _newData = null;
-	private TreeNode _node = null;
+	private Object _savedData;
+	private Object _newData = null;
+	private DefaultMutableTreeNode _node = null;
 	private JTree _tree;
 	
 	
@@ -37,7 +37,7 @@ public class EditCommand implements Command {
 
 	@Override
 	public void undo() {
-		_newData = _node.toString();
+		_newData = _node.getUserObject();
 		setData(_savedData);
 	}
 	
@@ -45,18 +45,18 @@ public class EditCommand implements Command {
 		if(path == null) {
 			_savedData = "";
 		} else {
-			setNode((TreeNode) path.getLastPathComponent());
+			setNode((DefaultMutableTreeNode) path.getLastPathComponent());
 		}
 	}
 	
 	public void setNode(TreeNode node) {
-		_node = node;
-		_savedData = _node.toString();
+		_node = (DefaultMutableTreeNode) node;
+		_savedData = _node.getUserObject();
 	}
 	
-	private void setData(String str) {
-		if(str != null) {
-			((DefaultMutableTreeNode) _node).setUserObject(str);
+	private void setData(Object obj) {
+		if(obj != null) {
+			_node.setUserObject(obj);
 			((DefaultTreeModel)_tree.getModel()).nodeChanged(_node);
 		}
 	}

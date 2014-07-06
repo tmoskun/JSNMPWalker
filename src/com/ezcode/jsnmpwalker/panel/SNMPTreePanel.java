@@ -5,8 +5,10 @@ package com.ezcode.jsnmpwalker.panel;
  * This Software is distributed under GPLv3 license
  */
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -17,6 +19,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragSource;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -29,13 +32,24 @@ import java.util.Set;
 import java.util.regex.Matcher;
 
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JTabbedPane;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.UIDefaults;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.plaf.metal.MetalTabbedPaneUI;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -47,28 +61,42 @@ import javax.swing.tree.TreeSelectionModel;
 import net.percederberg.mibble.MibLoaderException;
 import net.percederberg.mibble.browser.MibNode;
 
-import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 import com.ezcode.jsnmpwalker.SNMPTreeCellEditor;
+import com.ezcode.jsnmpwalker.action.ButtonAction;
 import com.ezcode.jsnmpwalker.command.AddCommand;
+import com.ezcode.jsnmpwalker.command.CreateSNMPCommand;
 import com.ezcode.jsnmpwalker.command.CutCommand;
 import com.ezcode.jsnmpwalker.command.InsertCommand;
 import com.ezcode.jsnmpwalker.command.PasteCommand;
 import com.ezcode.jsnmpwalker.command.RemoveCommand;
 import com.ezcode.jsnmpwalker.command.TreeNodeCommandStack;
+import com.ezcode.jsnmpwalker.data.SNMPDeviceData;
+import com.ezcode.jsnmpwalker.data.SNMPOptionModel;
 import com.ezcode.jsnmpwalker.data.SNMPTreeData;
-import com.ezcode.jsnmpwalker.listener.MibDragGestureListener;
+import com.ezcode.jsnmpwalker.data.TransferableSNMPDeviceData;
+import com.ezcode.jsnmpwalker.dialog.CommandDialog;
+import com.ezcode.jsnmpwalker.layout.WrapLayout;
 import com.ezcode.jsnmpwalker.listener.TreeDragGestureListener;
 import com.ezcode.jsnmpwalker.menu.SNMPPopupMenu;
 import com.ezcode.jsnmpwalker.target.TreeDropTarget;
+import com.ezcode.jsnmpwalker.utils.PanelUtils;
 
-public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
+public class SNMPTreePanel extends JPanel  implements ClipboardOwner {
+	private JFrame _frame;
+	private final JTabbedPane _snmpOptionPane = new JTabbedPane(JTabbedPane.TOP);
 	private MibTreePanel _mibPanel;
 	private JTree _tree;
 	private DefaultTreeModel _treeModel;
 	private TreeCellEditor _cellEditor;
 	private TreeNodeCommandStack _commandStack;
+	public static final int OID_NODE = 4;
+	public static final int IP_NODE = 3;
+	public static final int COMMAND_NODE = 2;
+	public static final int ROOT = 1;
 	
-	public SNMPTreePanel(MibTreePanel mibPanel, TreeNodeCommandStack commandStack) {
+	public SNMPTreePanel(JFrame frame, MibTreePanel mibPanel, TreeNodeCommandStack commandStack) {
+		super(new BorderLayout());
+		_frame = frame;
 		_mibPanel = mibPanel;
 		_commandStack = commandStack;
 		init();		
@@ -79,7 +107,6 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 		_treeModel = new DefaultTreeModel(root);
 		_tree = new JTree(_treeModel);
 		_tree.setEditable(true);
-		//ToolTipManager.sharedInstance().registerComponent(_tree);
 		_tree.setCellRenderer(new SNMPTreeRenderer());
 		_cellEditor = new SNMPTreeCellEditor(_tree, _commandStack);
 		_tree.setCellEditor(_cellEditor);
@@ -116,6 +143,9 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 				int row = _tree.getRowForLocation(e.getX(),e.getY());
 				if(row == -1) {
 					_tree.clearSelection();
+					clearSNMPOptionPanel();
+				} else if(_snmpOptionPane.getSelectedIndex() >= 0) {
+					setSNMPOptionPanel();
 				}
 			}
 		});
@@ -156,48 +186,153 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 		_tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK), "none");
 		_tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK), "none");
 		
-		this.getViewport().add(_tree);
+		JScrollPane sp = new JScrollPane(_tree);
+		this.add(sp, BorderLayout.CENTER);
+		
+		JPanel bottomPane = new JPanel(new BorderLayout());
+		
+		//View options panel
+		_snmpOptionPane.setUI(new MetalTabbedPaneUI());	
+		java.net.URL imgURL = getClass().getResource("/img/properties.gif");
+		_snmpOptionPane.addTab("", null);
+		final JLabel bookmark = new JLabel("SNMP Options", new ImageIcon(imgURL), SwingConstants.LEFT);
+		bookmark.setBackground(PanelUtils.UI_DEFAULTS.getColor("Button.light"));
+		_snmpOptionPane.setTabComponentAt(0, bookmark);
+		_snmpOptionPane.setSelectedIndex(-1);
+		
+		_snmpOptionPane.getTabComponentAt(0).addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				bookmark.setOpaque(false);
+				if(_snmpOptionPane.getSelectedIndex() >= 0) {
+					clearSNMPOptionPanel();
+				} else {
+					setSNMPOptionPanel();
+				}
+			}
+			public void mouseEntered(MouseEvent e) {
+				if(_snmpOptionPane.getSelectedIndex() < 0) {
+					bookmark.setOpaque(true);
+					bookmark.repaint();
+				}
+			}
+			public void mouseExited(MouseEvent e) {
+				if(_snmpOptionPane.getSelectedIndex() < 0) {
+					bookmark.setOpaque(false);
+					bookmark.repaint();
+				}
+			}
+		});
+		
+		//buttons to add commands
+		JPanel commandButtPane = new JPanel(new WrapLayout(FlowLayout.LEFT));
+		JButton addcommand = new JButton("Add Command");
+		addcommand.setMnemonic(KeyEvent.VK_A);
+		addcommand.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JDialog dg = new CommandDialog((JFrame) SwingUtilities.getWindowAncestor(SNMPTreePanel.this), "Create Command", SNMPTreePanel.this);
+				//dg.setLocationRelativeTo(null);
+				dg.setVisible(true);
+			}
+			
+		});
+		
+		/*
+		JButton removecommand = new JButton("Remove Commands");
+		removecommand.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				removeNodes();
+			}
+			
+		});
+		*/
+		commandButtPane.add(addcommand);
+		//commandButtons.add(removecommand);
+		
+		bottomPane.add(commandButtPane, BorderLayout.NORTH);
+		bottomPane.add(new JSeparator(SwingConstants.HORIZONTAL));
+		bottomPane.add(_snmpOptionPane, BorderLayout.SOUTH);
+		
+		this.add(bottomPane, BorderLayout.SOUTH);
+		
+		//set keystrokes for action buttons
+		addcommand.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0), "Add");
+		addcommand.getActionMap().put("Add", new ButtonAction(_frame, addcommand));
+		
 		this.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "SNMP Command Tree"));
+	}
+	
+	private void setSNMPOptionPanel() {
+		_snmpOptionPane.setSelectedIndex(0);
+		TreePath path = _tree.getSelectionPath();
+		if(path != null && path.getPathCount() == IP_NODE) {
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+			SNMPDeviceData data = (SNMPDeviceData) node.getUserObject();
+			if(data != null)
+				_snmpOptionPane.setComponentAt(0, new SNMPOptionEditPanel(this, data));
+		} else {
+			JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+			panel.add(new JLabel("Please, select an IP node to see SNMP options"));
+			_snmpOptionPane.setComponentAt(0, panel);
+		}
+		_snmpOptionPane.repaint();
+	}
+	
+	public void clearSNMPOptionPanel() {
+		_snmpOptionPane.setSelectedIndex(-1);
+		_snmpOptionPane.setComponentAt(0, null);
 	}
 	
 	public JTree getTree() {
 		return _tree;
 	}
 	
-	public void addNodes(String str) {
+	public void addNodes(Object obj) {
 		TreePath[] paths = _tree.getSelectionPaths();
 		if(paths != null && paths.length > 0) {
-			TreeNodeCommandStack.Command add = new AddCommand(this, paths, str);
+			TreeNodeCommandStack.Command add = new AddCommand(this, paths, obj);
 			_commandStack.add(add);
 		}
 	}
 	
-	public void addNode(DefaultMutableTreeNode parent, String str) {
-		addNode(parent, str, null);
+	public void addNode(DefaultMutableTreeNode parent, Object obj) {
+		addNode(parent, obj, null);
 	}
-		
-	public void addNode(DefaultMutableTreeNode parent, String str, DefaultMutableTreeNode node) {
+	
+	public void addNode(DefaultMutableTreeNode parent, DefaultMutableTreeNode node) {
+		addNode(parent, node, false);
+	}
+	
+	public void addNode(DefaultMutableTreeNode parent, Object obj, DefaultMutableTreeNode node) {
+		boolean isEditing = (obj == null || obj.toString().length() == 0);
+		DefaultMutableTreeNode child = (node == null) ? new DefaultMutableTreeNode(obj) : node;
+		addNode(parent, child, isEditing);
+	}
+	
+	public void addNode(DefaultMutableTreeNode parent, DefaultMutableTreeNode node, boolean isEditing) {
+		_treeModel.insertNodeInto(node, parent, parent.getChildCount());
 		TreeNode[] path = parent.getPath();
-		boolean isEditing = (str == null || str.length() == 0);
-		DefaultMutableTreeNode child = (node == null) ? new DefaultMutableTreeNode(str) : node;
-		_treeModel.insertNodeInto(child, parent, parent.getChildCount());
 		TreePath treepath = new TreePath(path);
 		_tree.expandPath(treepath);
 		if(isEditing) {
-			_tree.startEditingAtPath(treepath.pathByAddingChild(child));
-			((SNMPTreeCellEditor) _cellEditor).setCommandData(child);
+			_tree.startEditingAtPath(treepath.pathByAddingChild(node));
+			((SNMPTreeCellEditor) _cellEditor).setCommandData(node);
 		} 
 	}
 	
-	public void editNode(String str) {
+	
+	public void editNode(Object obj) {
 		TreePath path = _tree.getSelectionPath();
 		if(path != null) {
-			boolean isEditing = (str == null || str.length() == 0);
+			boolean isEditing = (obj == null || obj.toString().length() == 0);
 			if(isEditing) {
 				_tree.startEditingAtPath(path);
 				((SNMPTreeCellEditor) _cellEditor).setCommandData((TreeNode) path.getLastPathComponent());
 			} else {
-				TreeNodeCommandStack.Command paste = new PasteCommand(this, path, str);
+				TreeNodeCommandStack.Command paste = new PasteCommand(this, path, obj);
 				_commandStack.add(paste);
 			}
 		}
@@ -215,30 +350,31 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 	
 	private void copyData(Set<TreePath> paths) {
 		if(paths != null && paths.size() > 0) {
-			StringBuilder str = new StringBuilder();
+			List<Object> list = new ArrayList<Object>();
 			for(TreePath path: paths) {
 				DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-				copyNodeData(node, str);
+				Object obj = node.getUserObject();
+				list.add(obj);
 			}
-			if(str.length() > 0)
-				setClipboardContents(str.toString());
+			if(!list.isEmpty()) {
+				setClipboardContents(list);
+			} 
 		}
 	}
 	
 	public void copyData(List<TreeNode> nodes) {
 		StringBuilder str = new StringBuilder();
+		List<Object> list = new ArrayList<Object>();
 		for(TreeNode node: nodes) {
-			copyNodeData(node, str);
+			Object obj = ((DefaultMutableTreeNode) node).getUserObject();
+			list.add((SNMPDeviceData) obj);
+
 		}
-		if(str.length() > 0)
-			setClipboardContents(str.toString());
+		if(!list.isEmpty()) {
+			setClipboardContents(list);
+		} 
 	}
 	
-	private void copyNodeData(TreeNode node, StringBuilder str) {
-		if(str.length() > 0)
-			str.append("\n");
-		str.append((String)((DefaultMutableTreeNode) node).getUserObject());
-	}
 	
 	public void translateData() {
 		TreePath path = _tree.getSelectionPath();
@@ -282,19 +418,19 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 		pasteData(paths, null);
 	}
 	
-	public void pasteData(TreePath path, String str) {
+	public void pasteData(TreePath path, Object obj) {
 		if(path != null)
-			pasteData(new TreePath[] {path}, new String[] {str});
+			pasteData(new TreePath[] {path}, new Object[] {obj});
 	}
 	
-	public void pasteData(TreePath path, String[] str) {
+	public void pasteData(TreePath path, Object[] obj) {
 		if(path != null)
-			pasteData(new TreePath[] {path}, str);
+			pasteData(new TreePath[] {path}, obj);
 	}
 	
-	private void pasteData(TreePath[] paths, String[] str) {
+	private void pasteData(TreePath[] paths, Object[] obj) {
 		if(paths != null && paths.length > 0) {			
-			TreeNodeCommandStack.Command paste = new PasteCommand(this, paths, str);
+			TreeNodeCommandStack.Command paste = new PasteCommand(this, paths, obj);
 			_commandStack.add(paste);
 		}
 	}
@@ -304,23 +440,21 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 		insertData(paths, null);
 	}
 	
-	public void insertData(TreePath path, String[] str) {
+	public void insertData(TreePath path, Object[] obj) {
 		if(path != null)
-			insertData(new TreePath[] {path}, str);
+			insertData(new TreePath[] {path}, obj);
 	}
 	
-	public void insertData(TreePath[] paths, String[] str) {
+	public void insertData(TreePath[] paths, Object[] obj) {
 		if(paths != null && paths.length > 0) {
-			//if(str == null)
-			//	str = getClipboardContents().split("\\r?\\n");
-			TreeNodeCommandStack.Command insert = new InsertCommand(this, paths, str);
+			TreeNodeCommandStack.Command insert = new InsertCommand(this, paths, obj);
 			_commandStack.add(insert);
 		}
 	}
 	
-	private void insertData(TreePath path, String str) {
+	private void insertData(TreePath path, Object obj) {
 		if(path != null) {
-			TreeNodeCommandStack.Command insert = new InsertCommand(this, path, str);
+			TreeNodeCommandStack.Command insert = new InsertCommand(this, path, obj);
 			_commandStack.add(insert);
 		}
 	}
@@ -356,6 +490,13 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 		removeNodes(paths);
 	}
 	
+	public void createSNMP(Object[] obj) {
+		if(obj != null && obj.length > 0) {
+			TreeNodeCommandStack.Command createSNMP = new CreateSNMPCommand(this, obj);
+			_commandStack.add(createSNMP);
+		}
+	}
+	
 	
 	public void undo() {
 		_commandStack.undo();
@@ -370,31 +511,53 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
 		//do nothing
 	} 
 	
-	public void setClipboardContents( String str ){
-		StringSelection stringSelection = new StringSelection( str );
+	public void setClipboardContents( Object obj ){
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		clipboard.setContents( stringSelection, this );
+		if(obj instanceof String) {
+			StringSelection stringSelection = new StringSelection( obj.toString() );
+			clipboard.setContents( stringSelection, this );
+		} else if (obj instanceof SNMPDeviceData){
+			TransferableSNMPDeviceData dataSelection = new TransferableSNMPDeviceData((SNMPDeviceData) obj, SNMPDeviceData.SNMP_DEVICE_DATA_FLAVOR);
+			clipboard.setContents(dataSelection, this);
+		} else if (obj instanceof List) {
+			List list = (List) obj;
+			if(!list.isEmpty()) {
+				Object first = list.get(0);
+				if(first instanceof String) {
+					StringBuilder str = new StringBuilder();
+					for(Object s: list) {
+						str.append(s);
+						str.append("\n");
+					}
+					StringSelection stringSelection = new StringSelection( str.toString() );
+					clipboard.setContents( stringSelection, this );
+				} else if(first instanceof SNMPDeviceData) {
+					TransferableSNMPDeviceData dataSelection = new TransferableSNMPDeviceData((List<SNMPDeviceData>) obj, SNMPDeviceData.SNMP_DEVICE_DATA_FLAVOR);
+					clipboard.setContents(dataSelection, this);
+				}
+			}
+		}
 	}
 	
-	public String getClipboardContents() {
-		String result = "";
+	public Object getClipboardContents() {
+		Object result = "";
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		//odd: the Object param of getContents is not currently used
 		Transferable contents = clipboard.getContents(null);
-		boolean hasTransferableText = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
-		    if ( hasTransferableText ) {
-		      try {
-		        result = (String)contents.getTransferData(DataFlavor.stringFlavor);
-		      }
-		      catch (UnsupportedFlavorException ex){
-		        //highly unlikely since we are using a standard DataFlavor
-		        System.out.println(ex);
-		        ex.printStackTrace();
-		      }
-		      catch (IOException ex) {
-		        System.out.println(ex);
-		        ex.printStackTrace();
-		      }
+		if(contents != null) {
+			try {
+				if (contents.isDataFlavorSupported(SNMPDeviceData.SNMP_DEVICE_DATA_FLAVOR)) {
+					result = contents.getTransferData(SNMPDeviceData.SNMP_DEVICE_DATA_FLAVOR);
+				} else if (contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+			        result = (String)contents.getTransferData(DataFlavor.stringFlavor);
+			    }
+			} catch (UnsupportedFlavorException ex){
+			    System.out.println(ex);
+			    ex.printStackTrace();
+			} catch (IOException ex) {
+			    System.out.println(ex);
+			    ex.printStackTrace();
+			 }
 		 }
 		 return result;
 	}
@@ -406,16 +569,14 @@ public class SNMPTreePanel extends JScrollPane  implements ClipboardOwner {
     		TreePath path = tree.getPathForRow(row);
     		if(path != null) {
     			int level = path.getPathCount();
-    			if(row > SNMPTreeCellEditor.ROOT) {
+    			if(row > SNMPTreePanel.ROOT) {
     				if(value == null || value.toString().length() == 0) {
     					switch(level) {
 			    			//case COMMAND_NODE: value = "Add Method..."; break;
-			    			case SNMPTreeCellEditor.IP_NODE: value = "Add IP..."; break;
-			    			case SNMPTreeCellEditor.OID_NODE: value = "Add OID..."; break;
+			    			case SNMPTreePanel.IP_NODE: value = "Add IP..."; break;
+			    			case SNMPTreePanel.OID_NODE: value = "Add OID..."; break;
 			    			default: break;
     					}
-//    				} else if(level > SNMPTreeCellEditor.COMMAND_NODE) {
-//    					setToolTipText("Drap and drop to duplicate");
     				}
     			}
     		}

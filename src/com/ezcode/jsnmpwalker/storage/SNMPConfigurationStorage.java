@@ -31,6 +31,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.ezcode.jsnmpwalker.data.SNMPDeviceData;
+import com.ezcode.jsnmpwalker.data.SNMPOptionModel;
+
 
 public class SNMPConfigurationStorage {
 	private DocumentBuilder _docBuilder;
@@ -54,11 +57,12 @@ public class SNMPConfigurationStorage {
 		_path = filename;
 	}
 	
-	public boolean saveConfiguration(TreeModel treeModel, Map<String, String> options) {
-		return saveConfiguration(treeModel, options, _path);
+	//public boolean saveConfiguration(TreeModel treeModel, Map<String, String> options) {
+	public boolean saveConfiguration(TreeModel treeModel) {
+		return saveConfiguration(treeModel, _path);
 	}
-	
-	public boolean saveConfiguration(TreeModel treeModel, Map<String, String> options, String filename) {
+	public boolean saveConfiguration(TreeModel treeModel, String filename) {
+	//public boolean saveConfiguration(TreeModel treeModel, Map<String, String> options, String filename) {
 		if(_docBuilder != null && filename != null) {
 						
 			Document doc = _docBuilder.newDocument();
@@ -80,9 +84,21 @@ public class SNMPConfigurationStorage {
 				
 				Enumeration ips = command.children();
 				while(ips.hasMoreElements()) {
-					TreeNode ip = (TreeNode) ips.nextElement();
+					DefaultMutableTreeNode ip = (DefaultMutableTreeNode) ips.nextElement();
+					SNMPDeviceData ipData = (SNMPDeviceData) ip.getUserObject();
 					Element ipElement = doc.createElement("Ip");
-					ipElement.setAttribute("data", ip.toString());
+					ipElement.setAttribute("data", ipData.getIp());
+					
+					Element optionsElement = doc.createElement("Options");
+					Map<String, String> options = ipData.getOptions();
+					for(String opt: options.keySet()) {
+						Element el = doc.createElement("Option");
+						el.setAttribute("name", opt);
+						el.setAttribute("value", options.get(opt));
+						optionsElement.appendChild(el);
+					}
+					ipElement.appendChild(optionsElement);
+					
 					commandElement.appendChild(ipElement);
 					
 					Enumeration oids = ip.children();
@@ -94,7 +110,7 @@ public class SNMPConfigurationStorage {
 					}
 				}
 			}
-			
+/*			
 			//options
 			Element optionsElement = doc.createElement("Options");
 			rootElement.appendChild(optionsElement);
@@ -104,6 +120,7 @@ public class SNMPConfigurationStorage {
 				el.setAttribute("value", options.get(opt));
 				optionsElement.appendChild(el);
 			}
+*/
 			
 			// write the content into xml file
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -127,8 +144,8 @@ public class SNMPConfigurationStorage {
 		}
 		return false;
 	}
-		
-	public boolean readConfiguration(TreeModel treeModel, Map<String, String> options, String filename) {
+	public boolean readConfiguration(TreeModel treeModel, String filename) {	
+	//public boolean readConfiguration(TreeModel treeModel, Map<String, String> options, String filename) {
 		if(_docBuilder != null) {
 			try {
 				File fXmlFile = new File(filename);
@@ -153,7 +170,20 @@ public class SNMPConfigurationStorage {
 							if (ipNode.getNodeType() == Node.ELEMENT_NODE) {
 								Element ipElement = (Element) ipNode;
 								String ip = ipElement.getAttribute("data");
-								DefaultMutableTreeNode ipTreeNode = new DefaultMutableTreeNode(ip);
+								
+								NodeList optionList = ipElement.getElementsByTagName("Option");
+								SNMPOptionModel options = new SNMPOptionModel();
+								for(int k = 0; k < optionList.getLength(); k++) {
+									Node optionNode = optionList.item(k);
+									if(optionNode.getNodeType() == Node.ELEMENT_NODE) {
+										Element optionElement = (Element) optionNode;
+										String optName = optionElement.getAttribute("name");
+										String optValue = optionElement.getAttribute("value");					
+										options.put(optName, optValue);
+									}
+								}
+								SNMPDeviceData data = new SNMPDeviceData(ip, options);
+								DefaultMutableTreeNode ipTreeNode = new DefaultMutableTreeNode(data);
 								((DefaultTreeModel) treeModel).insertNodeInto(ipTreeNode, (MutableTreeNode) commTreeNode, treeModel.getChildCount(commTreeNode));								
 								
 								NodeList oidList = ipElement.getElementsByTagName("Oid");
@@ -171,7 +201,7 @@ public class SNMPConfigurationStorage {
 						}			 
 					}
 				}
-				
+/*
 				//options
 				NodeList optionList = doc.getElementsByTagName("Option");
 				for(int i = 0; i < optionList.getLength(); i++) {
@@ -183,6 +213,7 @@ public class SNMPConfigurationStorage {
 						options.put(optName, optValue);
 					}
 				}
+*/
 				setPath(filename);
 				return true;
 			} catch (Exception e) {

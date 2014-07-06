@@ -5,20 +5,22 @@ package com.ezcode.jsnmpwalker.menu;
  * This Software is distributed under GPLv3 license
  */
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.regex.Matcher;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
-import com.ezcode.jsnmpwalker.SNMPSessionFrame;
-import com.ezcode.jsnmpwalker.SNMPTreeCellEditor;
 import com.ezcode.jsnmpwalker.data.SNMPTreeData;
-import com.ezcode.jsnmpwalker.listener.SNMPTreeMenuListener;
 import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
 
 public class SNMPPopupMenu extends JPopupMenu {
@@ -33,7 +35,16 @@ public class SNMPPopupMenu extends JPopupMenu {
 	
 	public JMenu buildCommandMenu(String title, MouseListener lis) {
 		JMenu comms = new JMenu(title);
-		for(String str: SNMPTreeData.COMMANDS) {
+		ArrayList<String> methods = new ArrayList<String>(Arrays.asList(SNMPTreeData.METHODS));
+		TreeNode root = (TreeNode) _tree.getModel().getRoot();
+		Enumeration children = root.children();
+		while(children.hasMoreElements()) {
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) children.nextElement();
+			methods.remove(node.getUserObject());
+		}
+		if(methods.isEmpty())
+			return null;
+		for(String str: methods) {
 			JMenuItem comm = new JMenuItem(str);
 			comm.addMouseListener(lis);
 			comms.add(comm);
@@ -42,23 +53,26 @@ public class SNMPPopupMenu extends JPopupMenu {
 	}
 	
 	private boolean noChildren() {
-		String val = (String) ((DefaultMutableTreeNode) _path.getLastPathComponent()).getUserObject();
-		return (val == null || val.length() == 0);
+		Object val = ((DefaultMutableTreeNode) _path.getLastPathComponent()).getUserObject();
+		return (val == null || val.toString().length() == 0);
 	}
 	
 	public void buildMenu(int type, TreePath p) {
 		_path = p;
 		//Add
 		switch(type) {
-			case SNMPTreeCellEditor.ROOT: 
-						this.add(buildCommandMenu("Add Method", _treeListener));
+			case SNMPTreePanel.ROOT: 
+						JMenu commandMenu = buildCommandMenu("Add Method", _treeListener);
+						if(commandMenu != null) {
+							this.add(commandMenu);
+						}
 						break;
-			case SNMPTreeCellEditor.COMMAND_NODE:
+			case SNMPTreePanel.COMMAND_NODE:
 						JMenuItem addip = new JMenuItem("Add IP");
 						addip.addMouseListener(_treeListener);
 						this.add(addip);
 						break;
-			case SNMPTreeCellEditor.IP_NODE: 
+			case SNMPTreePanel.IP_NODE: 
 						if(noChildren())
 							break;
 						JMenuItem addoid = new JMenuItem("Add OID");
@@ -67,10 +81,10 @@ public class SNMPPopupMenu extends JPopupMenu {
 						break;
 			default: break;			
 		}
-		if(type > SNMPTreeCellEditor.ROOT) {			
+		if(type > SNMPTreePanel.ROOT) {			
 			if(_tree.getSelectionCount() == 1) {
 				//Translate from MIB
-				if(type == SNMPTreeCellEditor.OID_NODE) {
+				if(type == SNMPTreePanel.OID_NODE) {
 					String oid = (String) ((DefaultMutableTreeNode) _path.getLastPathComponent()).getUserObject();
 					if(!SNMPTreeData.isValidOID(oid)) {
 						String mibFile = SNMPTreeData.getMIB(oid);
@@ -85,7 +99,7 @@ public class SNMPPopupMenu extends JPopupMenu {
 					}
 				}
 				//Edit
-				if(type == SNMPTreeCellEditor.COMMAND_NODE) {
+				if(type == SNMPTreePanel.COMMAND_NODE) {
 					this.add(buildCommandMenu("Edit", _treeListener));
 				} else {
 					JMenuItem edit = new JMenuItem("Edit");
@@ -109,17 +123,17 @@ public class SNMPPopupMenu extends JPopupMenu {
 		}
 		//Insert
 		switch(type) {
-			case SNMPTreeCellEditor.ROOT: 
+			case SNMPTreePanel.ROOT: 
 						JMenuItem insertcomm = new JMenuItem("Insert Commands");
 						insertcomm.addMouseListener(_treeListener);
 						this.add(insertcomm);
 						break;
-			case SNMPTreeCellEditor.COMMAND_NODE:
+			case SNMPTreePanel.COMMAND_NODE:
 						JMenuItem insertip = new JMenuItem("Insert IPs");
 						insertip.addMouseListener(_treeListener);
 						this.add(insertip);
 						break;
-			case SNMPTreeCellEditor.IP_NODE: 
+			case SNMPTreePanel.IP_NODE: 
 						if(noChildren())
 							break;
 						JMenuItem insertoid = new JMenuItem("Insert OIDs");
@@ -128,7 +142,7 @@ public class SNMPPopupMenu extends JPopupMenu {
 						break;
 			default: break;			
 		}
-		if(type > SNMPTreeCellEditor.ROOT) {
+		if(type > SNMPTreePanel.ROOT) {
 			//Remove
 			this.addSeparator();
 			JMenuItem remove = new JMenuItem("Delete");
@@ -141,5 +155,48 @@ public class SNMPPopupMenu extends JPopupMenu {
 	
 	public TreePath getObjectPath() {
 		return _path;
+	}
+	
+	private class SNMPTreeMenuListener extends MouseAdapter {
+		private SNMPTreePanel _panel;
+		
+		public SNMPTreeMenuListener(SNMPTreePanel panel) {
+			_panel = panel;
+		}
+		
+		private void executeCommand(String command, SNMPPopupMenu menu, Object obj) {
+			if(command.startsWith("Add")) {
+				_panel.addNodes(obj);
+			} else if(command.startsWith("Edit")) {
+				_panel.editNode(obj);
+			} else if(command.startsWith("Delete")) {
+				_panel.removeNodes();
+			} else if(command.startsWith("Cut")) {
+				_panel.cutNodes();
+			} else if(command.startsWith("Copy")) {
+				_panel.copyData();
+			} else if(command.startsWith("Paste")) {
+				_panel.pasteData();
+			} else if(command.startsWith("Insert")) {
+				_panel.insertData();
+			} else if(command.startsWith("Translate")) {
+				_panel.translateData();
+			}
+		}
+			
+		public void mousePressed(MouseEvent event) {
+			JMenuItem item = (JMenuItem)event.getSource();
+			JPopupMenu parent = (JPopupMenu) item.getParent();
+			if(parent instanceof SNMPPopupMenu) {
+				executeCommand(item.getText(), (SNMPPopupMenu) parent, null);
+			} else {
+				String str = item.getText();
+				JMenu invoker = (JMenu)parent.getInvoker();
+				JPopupMenu parent2 = (JPopupMenu) invoker.getParent();
+				if(parent2 instanceof SNMPPopupMenu) {
+					executeCommand(invoker.getText(), (SNMPPopupMenu) parent2, str);
+				}
+			}
+		}
 	}
 }

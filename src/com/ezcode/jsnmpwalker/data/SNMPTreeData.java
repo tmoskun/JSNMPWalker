@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,27 +32,36 @@ import com.ezcode.jsnmpwalker.panel.MibTreePanel;
 public class SNMPTreeData {
 	
 	//public static final String[] COMMANDS = {"Get", "GetNext", "GetBulk", "Walk", "Table"};
-	public static final String[] SINGLE_OID_COMMANDS = {"GetBulk", "Walk"};
-	public static final String[] MULTI_OID_COMMANDS = {"Get", "GetNext"};
-	public static final String[] COMMANDS = Arrays.copyOf(MULTI_OID_COMMANDS, MULTI_OID_COMMANDS.length + SINGLE_OID_COMMANDS.length);
+	public static final String WALK = "Walk";
+	public static final String GET_BULK = "GetBulk";
+	public static final String GET = "Get";
+	public static final String GET_NEXT = "GetNext";
+	public static final String[] SINGLE_OID_METHODS = {GET_BULK, WALK};
+	public static final String[] MULTI_OID_METHODS = {GET, GET_NEXT};
+	public static final String[] METHODS = Arrays.copyOf(MULTI_OID_METHODS, MULTI_OID_METHODS.length + SINGLE_OID_METHODS.length);
 	static {
-		System.arraycopy(SINGLE_OID_COMMANDS, 0, COMMANDS, MULTI_OID_COMMANDS.length, SINGLE_OID_COMMANDS.length);
+		System.arraycopy(SINGLE_OID_METHODS, 0, METHODS, MULTI_OID_METHODS.length, SINGLE_OID_METHODS.length);
 	}
 	public static final Pattern MIB_PATTERN = Pattern.compile("^(.+)::(\\w+)((\\.\\d)*)?$");
 
 	private String _command = "";
-	private String _ip = "";
+	private SNMPDeviceData _deviceData;
 	private List<String> _oids = new ArrayList<String>();
 	
-	public SNMPTreeData(String command, String ip, String oid) {
+	public SNMPTreeData(String command, SNMPDeviceData deviceData, String oid) {
 		_command = command;
-		_ip = ip;
+		_deviceData = deviceData;
+	}
+	
+	public SNMPTreeData(String command, String ip, SNMPOptionModel optionModel, String oid) {
+		_command = command;
+		_deviceData = new SNMPDeviceData(ip, optionModel);
 		_oids.add(oid);
 	}
 	
-	public SNMPTreeData(String command, String ip, List<String> oids) {
+	public SNMPTreeData(String command, String ip, SNMPOptionModel optionModel, List<String> oids) {
 		_command = command;
-		_ip = ip;
+		_deviceData = new SNMPDeviceData(ip, optionModel);
 		_oids.addAll(oids);
 	}
 	
@@ -62,7 +72,8 @@ public class SNMPTreeData {
 			}
 			if(nodes[ipnum] instanceof DefaultMutableTreeNode) {
 				DefaultMutableTreeNode ip = (DefaultMutableTreeNode) nodes[ipnum];
-				_ip = (String) ip.getUserObject();
+				//_ip = (String) ip.getUserObject();
+				_deviceData = (SNMPDeviceData) ip.getUserObject();
 			}			
 		}
 	}
@@ -77,20 +88,48 @@ public class SNMPTreeData {
 		return _command;
 	}
 
-	public void setCommand(String _command) {
-		this._command = _command;
+	public void setCommand(String command) {
+		_command = command;
 	}
 
 	public String getIp() {
-		return _ip;
+		return _deviceData.getIp();
 	}
 
-	public void setIp(String _ip) {
-		this._ip = _ip;
+	public void setIp(String ip) {
+		_deviceData.setIp(ip);
 	}
+	
+	public Map<String, String> getOptionModel() {
+		return _deviceData.getOptions();
+	}
+	
+	public void setOptionModel(Map<String, String> mod) {
+		_deviceData.setOptions(mod);
+	}
+	 
+	
+	public static boolean isOIDRequired(String method) {
+		return !method.equalsIgnoreCase(WALK);
+	}
+	
+/*
+	
+	public Map<String, String> getOptions() {
+		return _optionModel;
+	}
+	
+	public void setOption(String key, String value) {
+		_optionModel.put(key, value);
+	}
+*/
 
 	public List<String> getOids() {
 		return _oids;
+	}
+	
+	public String getOid() {
+		return _oids.get(0);
 	}
 	
 	public void addOID(String oid) {
@@ -107,19 +146,32 @@ public class SNMPTreeData {
 		Enumeration<DefaultMutableTreeNode> oidNodes = ip.children();
 		addAllOIDs(oidNodes);
 	}
-
-	public boolean isValidNode() {
+	
+/*
+	public boolean isValidCommand() {
 		return _command != null && _ip != null && _command.length() > 0 && _ip.length() > 0 
 				&& validateCommand(_command) && validateIP(_ip);
 	}
+*/
+	
+	public boolean isValidCommand() {
+		return validateCommand(_command) && validateDeviceData(_deviceData);
+	}
+
 	
 	public static boolean isValidOID(String oid) {
 		return validateOID(oid);
 	}
 	
 	private static boolean validateCommand(String command) {
-		return Arrays.asList(COMMANDS).contains(command);
+		return command != null && command.length() > 0 && Arrays.asList(METHODS).contains(command);
 	}
+	
+	private static boolean validateDeviceData(SNMPDeviceData data) {
+		SNMPOptionModel mod = (SNMPOptionModel) data.getOptions();
+		return data != null && validateIP(data.getIp()) && mod != null && !mod.isEmpty();
+	}
+	
 	private static boolean validateIP(String ip) {
 		try {
 			InetAddress.getByName(ip);
@@ -141,6 +193,14 @@ public class SNMPTreeData {
 		return false;
 	}
 	
+	private static boolean validateOIDs(List<String> oids) {
+		for(String oid: oids) {
+			if(!validateOID(oid))
+				return false;
+		}
+		return true;
+	}
+	
 	public static String getMIB(String textOID) {
 		Pattern patt = Pattern.compile("^(.+)::(\\w+)(\\.\\d*)?$");
 		Matcher matt = patt.matcher(textOID);
@@ -149,12 +209,12 @@ public class SNMPTreeData {
 		return null;
 	}
 	
-	public static boolean isMultiOIDCommand(String command) {
-		return Arrays.asList(MULTI_OID_COMMANDS).contains(command);
+	public static boolean isMultiOIDMethod(String method) {
+		return Arrays.asList(MULTI_OID_METHODS).contains(method);
 	}
 	
 	public String toString() {
-		return _command + ": " + _ip + " " + _oids.toString();
+		return _command + ": " + _deviceData.getIp() + " " + _oids.toString();
 	}
 	
 

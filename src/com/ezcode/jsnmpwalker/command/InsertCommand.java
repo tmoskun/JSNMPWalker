@@ -14,12 +14,12 @@ import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
 
 public class InsertCommand extends AddCommand {
 
-	public InsertCommand(SNMPTreePanel panel, TreePath path, String str) {
-		this(panel, new TreePath[] {path}, new String[] {str});
+	public InsertCommand(SNMPTreePanel panel, TreePath path, Object obj) {
+		this(panel, new TreePath[] {path}, new Object[] {obj});
 	}
 
-	public InsertCommand(SNMPTreePanel panel, TreePath[] paths, String[] str) {
-		super(panel, paths, str);
+	public InsertCommand(SNMPTreePanel panel, TreePath[] paths, Object[] obj) {
+		super(panel, paths, obj);
 	}
 
 }

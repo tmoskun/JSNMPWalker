@@ -6,11 +6,15 @@ package com.ezcode.jsnmpwalker.command;
  */
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -23,43 +27,46 @@ import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
 
 public class AddCommand extends TreeCommand {
-	private String[] _userData = null;
+	private Object[] _userData = null;
 	private Map<TreePath, List<TreeNode>> _pathMap;
+
+	public AddCommand(SNMPTreePanel panel) {
+		super(panel);
+		_pathMap = new HashMap<TreePath, List<TreeNode>>();
+	}
 	
 	public AddCommand(SNMPTreePanel panel, TreePath path) {
 		this(panel, path, "");
 	}
 	
-	public AddCommand(SNMPTreePanel panel, TreePath path, String userData) {
-		this(panel, new TreePath[] {path}, new String[] {userData});
+	public AddCommand(SNMPTreePanel panel, TreePath path, Object userData) {
+		this(panel, new TreePath[] {path}, new Object[] {userData});
 	}
 	
 	public AddCommand(SNMPTreePanel panel, TreePath[] paths) {
 		this(panel, paths, new String[] {""});
 	}
 	
-	public AddCommand(SNMPTreePanel panel, TreePath[] paths, String userData) {
-		this(panel, paths, new String[] {userData});
+	public AddCommand(SNMPTreePanel panel, Object[] userData) {
+		this(panel, new TreePath[] {}, userData);
 	}
+	
+	public AddCommand(SNMPTreePanel panel, TreePath[] paths, Object userData) {
+		this(panel, paths, new Object[] {userData});
+	}
+	
 
-	public AddCommand(SNMPTreePanel panel, TreePath[] paths, String[] userData) {
+	public AddCommand(SNMPTreePanel panel, TreePath[] paths, Object[] userData) {
 		super(panel);
-		if(userData == null) {
-			 String str = _panel.getClipboardContents();
-			 if(str != null)
-				 _userData = str.split("\\r?\\n");
-		} else {
-			_userData = userData;
-		}
-		//_userData = userData;
+		setUserData(userData);
 		_pathMap = new HashMap<TreePath, List<TreeNode>>();
 		for(TreePath path: paths) {
 			List<TreeNode> nodes = new ArrayList<TreeNode>();
-			for(String s: _userData) {
+			for(Object s: _userData) {
 				DefaultMutableTreeNode node = new DefaultMutableTreeNode(s);
 				nodes.add(node);
 			}
-			_pathMap.put(path, nodes);
+			saveNodes(path, nodes);
 		}
 	}
 	
@@ -77,7 +84,9 @@ public class AddCommand extends TreeCommand {
 				for(TreeNode node: nodes) {
 					if(index > lastIndex)
 						break;
-					_panel.addNode(parent, _userData[index], (DefaultMutableTreeNode) node);
+					Object obj = ((DefaultMutableTreeNode) node).getUserObject();
+					boolean isEditing = (obj == null || obj.toString().length() == 0);
+					_panel.addNode(parent, (DefaultMutableTreeNode) node, isEditing);
 					index++;
 				}
 			}
@@ -95,12 +104,52 @@ public class AddCommand extends TreeCommand {
 		}	
 	}
 	
-	private Set<TreePath> getPaths() {
-		return _pathMap.keySet();
+	protected void setUserData(Object[] userData) {
+		if(userData == null) {
+			 Object obj = _panel.getClipboardContents();
+			 if(obj != null) {
+				 if(obj instanceof List) {
+					 _userData = ((List) obj).toArray();
+				 } else if(obj instanceof String) {
+					 _userData = ((String) obj).split("\\r?\\n");
+				 }
+			 }
+		} else {
+			_userData = userData;
+		}
+	}
+	
+	protected Object[] getUserData() {
+		return _userData;
+	}
+	
+	protected void saveNodes(TreePath path, List<TreeNode> nodes) {
+		_pathMap.put(path, nodes);
+	}
+	
+	protected void saveNode(TreePath path, TreeNode node) {
+		List<TreeNode> nodes = new ArrayList<TreeNode>();
+		nodes.add(node);
+		saveNodes(path, nodes);
+	}
+	
+	private TreeSet<TreePath> getPaths() {
+		TreeSet sorted = new TreeSet(new PathComparator());
+		sorted.addAll(_pathMap.keySet());
+		return sorted;
 	}
 	
 	private List<TreeNode> getChildren(TreePath path) {
 		return _pathMap.get(path);
+	}
+	
+	private class PathComparator implements Comparator<TreePath> {
+
+		@Override
+		public int compare(TreePath o1, TreePath o2) {
+			return o1.getPathCount() - o2.getPathCount();
+		}
+		
 	}
 
 }

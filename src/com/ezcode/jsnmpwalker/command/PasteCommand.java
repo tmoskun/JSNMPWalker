@@ -21,7 +21,7 @@ import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
 public class PasteCommand extends TreeCommand {
 	private Map<TreePath, Object> _pathMap;
 	private List<DefaultMutableTreeNode> _addedNodes;
-	private String[] _copyData;
+	private Object[] _copyData;
 	
 	public PasteCommand(SNMPTreePanel panel, TreePath path) {
 		this(panel, path, null);
@@ -31,16 +31,22 @@ public class PasteCommand extends TreeCommand {
 		this(panel, paths, null);
 	}
 	
-	public PasteCommand(SNMPTreePanel panel, TreePath path, String copyData) {
-		this(panel, new TreePath[] {path}, new String[] {copyData});
+	public PasteCommand(SNMPTreePanel panel, TreePath path, Object copyData) {
+		this(panel, new TreePath[] {path}, new Object[] {copyData});
 	}
 	
-	public PasteCommand(SNMPTreePanel panel, TreePath[] paths, String[] copyData) {
+	public PasteCommand(SNMPTreePanel panel, TreePath[] paths, Object[] copyData) {
 		super(panel);
 		if(copyData == null) {
-			 String str = _panel.getClipboardContents();
-			 if(str != null)
-				 _copyData = str.split("\\r?\\n");
+			 Object obj = _panel.getClipboardContents();
+			 if(obj != null) {
+				 if(obj instanceof List) {
+					 _copyData = ((List) obj).toArray();
+				 } else if(obj instanceof String) {
+					 _copyData = ((String) obj).split("\\r?\\n");
+					 //_copyData = ((String) obj).split(",");
+				 }
+			 }
 		} else {
 			_copyData = copyData;
 		}

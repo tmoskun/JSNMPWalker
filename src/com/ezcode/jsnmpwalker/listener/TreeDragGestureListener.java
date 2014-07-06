@@ -15,9 +15,9 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 import net.percederberg.mibble.value.ObjectIdentifierValue;
 
-import com.ezcode.jsnmpwalker.SNMPTreeCellEditor;
 import com.ezcode.jsnmpwalker.data.TransferableIp;
 import com.ezcode.jsnmpwalker.data.TransferableTreeData;
+import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
 import com.ezcode.jsnmpwalker.target.TreeDropTarget;
 
 public class TreeDragGestureListener implements DragGestureListener {
@@ -35,25 +35,25 @@ public class TreeDragGestureListener implements DragGestureListener {
 		if (event.getDragAction() == DnDConstants.ACTION_COPY) {
 			cursor = DragSource.DefaultCopyDrop;
 		}
-		List<String> oids = new ArrayList<String>();
-		List<String> ips = new ArrayList<String>();
+		List oids = new ArrayList();
+		List ips = new ArrayList();
 		TreePath[] paths = _tree.getSelectionPaths();
 		if(paths != null) {
 			Point location = event.getDragOrigin();
 			TreePath path = _tree.getPathForLocation(location.x, location.y);
 			if(path != null) {
-				String obj = (String) ((DefaultMutableTreeNode) path.getLastPathComponent()).getUserObject();
-				if(path.getPathCount() == SNMPTreeCellEditor.IP_NODE) {
+				Object obj = ((DefaultMutableTreeNode) path.getLastPathComponent()).getUserObject();
+				if(path.getPathCount() == SNMPTreePanel.IP_NODE) {
 					ips.add(obj);
-				} else if(path.getPathCount() == SNMPTreeCellEditor.OID_NODE) {
+				} else if(path.getPathCount() == SNMPTreePanel.OID_NODE) {
 					oids.add(obj);
 				}
 			}
 		}
 		if(ips.size() > 0)
-			event.startDrag(cursor, new TransferableTreeData(ips, SNMPTreeCellEditor.IP_NODE));
+			event.startDrag(cursor, new TransferableTreeData(ips, SNMPTreePanel.IP_NODE));
 		if(oids.size() > 0)
-			event.startDrag(cursor, new TransferableTreeData(oids, SNMPTreeCellEditor.OID_NODE));
+			event.startDrag(cursor, new TransferableTreeData(oids, SNMPTreePanel.OID_NODE));
 	}
 
 }

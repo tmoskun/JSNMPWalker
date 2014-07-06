@@ -12,20 +12,26 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 import javax.swing.SwingWorker;
 
+import org.snmp4j.AbstractTarget;
 import org.snmp4j.CommunityTarget;
 import org.snmp4j.PDU;
+import org.snmp4j.PDUv1;
+import org.snmp4j.ScopedPDU;
 import org.snmp4j.Snmp;
 import org.snmp4j.TransportMapping;
+import org.snmp4j.UserTarget;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
 import org.snmp4j.mp.MPv3;
 import org.snmp4j.mp.SnmpConstants;
+import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.security.SecurityModels;
 import org.snmp4j.security.SecurityProtocols;
 import org.snmp4j.security.USM;
@@ -40,7 +46,7 @@ import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
-import com.ezcode.jsnmpwalker.data.SNMPSessionOptionModel;
+import com.ezcode.jsnmpwalker.data.SNMPOptionModel;
 import com.ezcode.jsnmpwalker.data.SNMPTreeData;
 import com.ezcode.jsnmpwalker.formatter.SNMPFormatter;
 
@@ -54,7 +60,7 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	private SNMPTreeData _treeData;
 	private Map<String, String> _options;
 	
-	private CommunityTarget  _target;
+	private AbstractTarget _target;
 	private ResponseListener _listener;
 	private Map<Integer32,String> _walkList;
 	// Needed because bulk responses come one at a time
@@ -64,13 +70,15 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	private int _requests;
 	private int _responses;
 	private Snmp _snmp;
+	private int _version;
 	
 	
-	public SNMPSessionWorker(SNMPSessionFrame panel, SNMPFormatter formatter, SNMPTreeData treeData, Map<String, String> options, BlockingQueue<String> queue) {
+	public SNMPSessionWorker(SNMPSessionFrame panel, SNMPFormatter formatter, SNMPTreeData treeData, BlockingQueue<String> queue) {
+		
 		_panel = panel;
 		_queue = queue;
 		_treeData = treeData;
-		_options = options;
+		Map<String, String> options = _treeData.getOptionModel();
 		_formatter = formatter;
 		
 		_snmp = SnmpSingleton.getSnmp();
@@ -81,22 +89,56 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 
 		_lastResponseTime = 0;
 
-		Address targetAddress = GenericAddress.parse("udp:"+_treeData.getIp()+"/"+options.get(SNMPSessionOptionModel.PORT_KEY));
-	    // setting up target
-		_target = new CommunityTarget();
-		_target.setCommunity(new OctetString(options.get(SNMPSessionOptionModel.COMMUNITY_KEY)));
-		_target.setAddress(targetAddress);
-		_target.setRetries(Integer.parseInt(options.get(SNMPSessionOptionModel.RETRIES_KEY)));
-		_target.setTimeout(Integer.parseInt(options.get(SNMPSessionOptionModel.TIMEOUT_KEY)));
-		int version = SNMPSessionOptionModel.getVersion(options.get(SNMPSessionOptionModel.SNMP_VERSION_KEY));
-		_target.setVersion(version);
+		Address targetAddress = GenericAddress.parse("udp:"+_treeData.getIp()+"/"+options.get(SNMPOptionModel.PORT_KEY));
+		int retries = Integer.parseInt(options.get(SNMPOptionModel.RETRIES_KEY));
+		int timeout = Integer.parseInt(options.get(SNMPOptionModel.TIMEOUT_KEY));
+		// setting up community target
+
+		_version = SNMPOptionModel.getVersion(options.get(SNMPOptionModel.SNMP_VERSION_KEY));
 		
-		if(version == SnmpConstants.version3) {
-			_target.setSecurityLevel(SNMPSessionOptionModel.getSecurityLevel(options.get(SNMPSessionOptionModel.SECURITY_LEVEL_KEY)));
-			UsmUser user = new UsmUser(new OctetString(options.get(SNMPSessionOptionModel.SECURITY_NAME_KEY)), SNMPSessionOptionModel.getAuthenticationType(options.get(SNMPSessionOptionModel.AUTH_TYPE_KEY)), new OctetString(options.get(SNMPSessionOptionModel.AUTH_PASSPHRASE_KEY)),
-					                   SNMPSessionOptionModel.getPrivacyType(options.get(SNMPSessionOptionModel.PRIV_TYPE_KEY)), new OctetString(options.get(SNMPSessionOptionModel.PRIV_PASSPHRASE_KEY)));
-			// add user to the USM
-			_snmp.getUSM().addUser(user.getSecurityName(), user);
+		if(_version == SnmpConstants.version3) {
+			try {
+				OctetString securityName = new OctetString(options.get(SNMPOptionModel.SECURITY_NAME_KEY));
+				int securityLevel = SNMPOptionModel.getSecurityLevel(options.get(SNMPOptionModel.SECURITY_LEVEL_KEY));
+				_target = new UserTarget();
+				_target.setAddress(targetAddress);
+				_target.setRetries(retries);
+				_target.setTimeout(timeout);
+				_target.setVersion(SnmpConstants.version3);
+				_target.setSecurityLevel(securityLevel);
+				_target.setSecurityName(securityName);
+				
+
+				OctetString authPass = null; 
+				OctetString privPass = null;
+				OID authType = null;
+				OID privType = null;
+				
+				if(securityLevel == SecurityLevel.AUTH_PRIV || securityLevel == SecurityLevel.AUTH_NOPRIV) {
+					authType = SNMPOptionModel.getAuthenticationType(options.get(SNMPOptionModel.AUTH_TYPE_KEY));
+					String authPassStr = options.get(SNMPOptionModel.AUTH_PASSPHRASE_KEY);
+					authPass = new OctetString(authPassStr); 
+					if(securityLevel == SecurityLevel.AUTH_PRIV) {
+						privType = SNMPOptionModel.getPrivacyType(options.get(SNMPOptionModel.PRIV_TYPE_KEY));
+						String privPassStr = options.get(SNMPOptionModel.PRIV_PASSPHRASE_KEY);
+						privPass = new OctetString(privPassStr);
+					}
+				}
+				   		
+				UsmUser user = new UsmUser(securityName, authType, authPass, privType, privPass);
+				// add user to the USM
+				_snmp.getUSM().addUser(user.getSecurityName(), user);
+			} catch (IllegalArgumentException ex) {
+				System.out.println("Illegal arguments");
+				ex.printStackTrace();
+			} 
+		} else {
+			_target = new CommunityTarget();
+			((CommunityTarget) _target).setCommunity(new OctetString(options.get(SNMPOptionModel.COMMUNITY_KEY)));
+			_target.setAddress(targetAddress);
+			_target.setRetries(retries);
+			_target.setTimeout(timeout);
+			_target.setVersion(_version);
 		}
 		
 		// set up a listener to use. 
@@ -144,7 +186,7 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 		List<String> oids = _treeData.getOids();
 		if(oids.size() > 0) {
 			try {
-				if(SNMPTreeData.isMultiOIDCommand(commandName)) {
+				if(SNMPTreeData.isMultiOIDMethod(commandName)) {
 					Method meth = this.getClass().getDeclaredMethod(command, List.class);
 					meth.invoke(this, oids);
 				} else {
@@ -190,7 +232,7 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	}
 	
 	public void getBulk(String oid) {
-		PDU pdu = new PDU();
+		PDU pdu = PDUforVersion.getPDU(_version);
 		pdu.add(new VariableBinding(new OID(oid)));
 		pdu.setType(PDU.GETBULK);
 		pdu.setMaxRepetitions(16);
@@ -200,29 +242,9 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 		send(pdu);
 		//--register since this is a walk
 	}
-/*
-	public void get(String oid) {
-		PDU pdu = new PDU();
-		pdu.add(new VariableBinding(new OID(oid)));
-		pdu.setType(PDU.GET);
-		
-		int reqId = _snmp.getNextRequestID();
-		pdu.setRequestID(new Integer32(reqId));
-		send(pdu);
-	}
-	
-	public void getNext(String oid) {
-		PDU pdu = new PDU();
-		pdu.add(new VariableBinding(new OID(oid)));
-		int reqId = _snmp.getNextRequestID();
-		pdu.setRequestID(new Integer32(reqId));
-		pdu.setType(PDU.GETNEXT);
-		send(pdu);
-	}
-*/
 	
 	public void get(List<String> oids) {
-		PDU pdu = new PDU();
+		PDU pdu = PDUforVersion.getPDU(_version);
 		for (String oid: oids) {
 			pdu.add(new VariableBinding(new OID(oid)));
 		}
@@ -234,7 +256,7 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	}
 	
 	public void getNext(List<String> oids) {
-		PDU pdu = new PDU();
+		PDU pdu = PDUforVersion.getPDU(_version);
 		for (String oid: oids) {
 			pdu.add(new VariableBinding(new OID(oid)));
 		}
@@ -250,7 +272,7 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	}
 	
 	private Integer32 walkCore(String oid) {
-		PDU pdu = new PDU();
+		PDU pdu = PDUforVersion.getPDU(_version);
 		pdu.add(new VariableBinding(new OID(oid)));
 		pdu.setType(PDU.GETNEXT);
 		Integer32 reqId = new Integer32(_snmp.getNextRequestID());
@@ -258,8 +280,8 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 		send(pdu);
 		return reqId;
 	}
-		
 	
+		
 	private void send(PDU pdu) {
 		try {
 			enqueue(new PDUData(_target.getAddress(), pdu));
@@ -305,6 +327,21 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 			return _snmp;
 		}	
 		
+	}
+	
+	private static class PDUforVersion {
+		
+		public static PDU getPDU(int version) {
+			if(version == SnmpConstants.version1) {
+				return new PDU();
+			} else if(version == SnmpConstants.version2c) {
+				return new PDU();
+			} else if(version == SnmpConstants.version3) {
+				return new ScopedPDU();
+			} else {
+				return new PDU();
+			}
+		}
 	}
 	
 	private class PDUData {

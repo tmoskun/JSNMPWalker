@@ -18,16 +18,19 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
 import net.percederberg.mibble.value.ObjectIdentifierValue;
 
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
-import com.ezcode.jsnmpwalker.SNMPTreeCellEditor;
 import com.ezcode.jsnmpwalker.data.TransferableTreeData;
+import com.ezcode.jsnmpwalker.dialog.CommandDialog;
 import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
 
 public class TreeDropTarget extends DropTarget {
@@ -49,11 +52,11 @@ public class TreeDropTarget extends DropTarget {
 	
 	private void collectIpNodes(List<TreePath> paths, TreePath path, int nodeType) {
 		DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-		if(node.isLeaf() && path.getPathCount() < nodeType)
+		if(node.isLeaf() && path.getPathCount() < nodeType) {
 			return;
-		else if(path.getPathCount() == nodeType)
+		} else if(path.getPathCount() == nodeType) {
 			paths.add(path);
-		else {
+		} else {
 			Enumeration children = node.children();
 			while(children.hasMoreElements()) {
 				collectIpNodes(paths, path.pathByAddingChild(children.nextElement()), nodeType);
@@ -97,9 +100,19 @@ public class TreeDropTarget extends DropTarget {
 		    		} else {
 		    			List<TreePath> paths = new ArrayList<TreePath>();
 		    			collectIpNodes(paths, path, nodeType - 1);
-		    			TreePath[] patharr = new TreePath[paths.size()];
-		    			patharr = paths.toArray(patharr);
-		    			_panel.insertData(patharr, item);
+		    			if(paths.size() > 0) {
+			    			TreePath[] patharr = new TreePath[paths.size()];
+			    			patharr = paths.toArray(patharr);
+			    			_panel.insertData(patharr, item);
+		    			} else {
+		    				if(nodeType == SNMPTreePanel.IP_NODE) {
+		    					JDialog dg = new CommandDialog((JFrame) SwingUtilities.getWindowAncestor(_panel), "Create Command", _panel, item[0]);
+		    					dg.setVisible(true);
+		    				} else if(nodeType == SNMPTreePanel.OID_NODE) {
+		    					JDialog dg = new CommandDialog((JFrame) SwingUtilities.getWindowAncestor(_panel), "Create Command", _panel, item);
+		    					dg.setVisible(true);
+		    				}
+		    			}
 		    		}
 	    		}
             }
@@ -118,9 +131,9 @@ public class TreeDropTarget extends DropTarget {
         Transferable transfer = evt.getTransferable();
         try {
 	        if(transfer.isDataFlavorSupported(MIB_DATA_FLAVOR)) {
-	        	insertTransferData(evt, transfer.getTransferData(MIB_DATA_FLAVOR), SNMPTreeCellEditor.OID_NODE);
+	        	insertTransferData(evt, transfer.getTransferData(MIB_DATA_FLAVOR), SNMPTreePanel.OID_NODE);
 	        } else if(transfer.isDataFlavorSupported(DEVICE_DATA_FLAVOR)) {
-	        	insertTransferData(evt, transfer.getTransferData(DEVICE_DATA_FLAVOR), SNMPTreeCellEditor.IP_NODE);
+	        	insertTransferData(evt, transfer.getTransferData(DEVICE_DATA_FLAVOR), SNMPTreePanel.IP_NODE);
 	        } else if(transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
 				Object data = transfer.getTransferData(DataFlavor.stringFlavor);
 				if(data instanceof TransferableTreeData) {

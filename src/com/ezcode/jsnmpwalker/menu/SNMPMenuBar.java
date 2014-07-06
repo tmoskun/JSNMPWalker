@@ -13,7 +13,9 @@ import java.util.Enumeration;
 
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -21,6 +23,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
@@ -29,7 +32,8 @@ import javax.swing.tree.TreeNode;
 
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 import com.ezcode.jsnmpwalker.command.TreeNodeCommandStack;
-import com.ezcode.jsnmpwalker.data.SNMPSessionOptionModel;
+import com.ezcode.jsnmpwalker.data.SNMPOptionModel;
+import com.ezcode.jsnmpwalker.dialog.CommandDialog;
 import com.ezcode.jsnmpwalker.listener.SNMPEditListener;
 import com.ezcode.jsnmpwalker.listener.SNMPRadioButtonListener;
 import com.ezcode.jsnmpwalker.panel.MibTreePanel;
@@ -42,7 +46,7 @@ public class SNMPMenuBar extends JMenuBar {
 	private JTree _tree;
 	private DefaultTreeModel _treeModel;
 	private SNMPConfigurationStorage _confStorage;
-	private SNMPSessionOptionModel _optionModel;
+	//private SNMPOptionModel _optionModel;
 	private JMenu _mibMenu;
 	private TreeNodeCommandStack _commandStack;
 	
@@ -53,7 +57,8 @@ public class SNMPMenuBar extends JMenuBar {
 		_tree = _treePane.getTree();
 		_treeModel = (DefaultTreeModel) _tree.getModel();
 		_confStorage = frame.getConfStorage();
-		_optionModel = frame.getOptionModel();
+		//_optionModel = frame.getOptionModel();
+		//_optionModel = new SNMPOptionModel();
 		_mibMenu = mibMenu;
 		_commandStack = commandStack;
 		init();
@@ -64,10 +69,10 @@ public class SNMPMenuBar extends JMenuBar {
 		filemenu.setMnemonic(KeyEvent.VK_F);
 		JMenu editmenu = new JMenu("Edit");
 		editmenu.setMnemonic(KeyEvent.VK_E);
-		JMenu optmenu = new JMenu("Options");
-		optmenu.setMnemonic(KeyEvent.VK_O);
-//		_mibMenu = new JMenu("MIB");
-//		_mibMenu.setMnemonic(KeyEvent.VK_M);
+		JMenu commandmenu = new JMenu("Command");
+		commandmenu.setMnemonic(KeyEvent.VK_M);
+		//JMenu optmenu = new JMenu("Options");
+		//optmenu.setMnemonic(KeyEvent.VK_O);
 			
 		//File menu
 		JMenuItem open = new JMenuItem("Open Configuration", KeyEvent.VK_G);
@@ -92,7 +97,8 @@ public class SNMPMenuBar extends JMenuBar {
 							MutableTreeNode node = (MutableTreeNode) children.nextElement();
 							_treeModel.removeNodeFromParent(node);
 						}
-						if(_confStorage.readConfiguration(_treeModel, _optionModel, file.getAbsolutePath()))
+						if(_confStorage.readConfiguration(_treeModel, file.getAbsolutePath()))
+						//if(_confStorage.readConfiguration(_treeModel, _optionModel, file.getAbsolutePath()))
 							save.setEnabled(true);	
 						for (int i = 0; i < _tree.getRowCount(); i++) {
 					         _tree.expandRow(i);
@@ -107,7 +113,8 @@ public class SNMPMenuBar extends JMenuBar {
 		
 		save.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				_confStorage.saveConfiguration(_treeModel, _optionModel);				
+				//_confStorage.saveConfiguration(_treeModel, _optionModel);	
+				_confStorage.saveConfiguration(_treeModel);	
 			}
 		});
 
@@ -119,7 +126,8 @@ public class SNMPMenuBar extends JMenuBar {
 		saveas.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String path = _frame.getSaveConfigPath();
-				if(_confStorage.saveConfiguration(_treeModel, _optionModel, path))
+				//if(_confStorage.saveConfiguration(_treeModel, _optionModel, path))
+				if(_confStorage.saveConfiguration(_treeModel, path))
 					save.setEnabled(true);	
 				
 			}
@@ -176,7 +184,20 @@ public class SNMPMenuBar extends JMenuBar {
 		undo.setEnabled(false);
 		redo.setEnabled(false);
 		_commandStack.registerButtons(undo, redo);
-				
+		
+		//Command menu
+		JMenuItem addcommand = new JMenuItem("Add Command", KeyEvent.VK_A);
+		addcommand.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JDialog dg = new CommandDialog(_frame, "Create Command", _treePane);
+				//dg.setLocationRelativeTo(null);
+				dg.setVisible(true);
+			}
+			
+		});
+		commandmenu.add(addcommand);	
+		
+	/*
 		SNMPSetOptionListener menuListener = new SNMPSetOptionListener();		
 		JMenu snmp3submenu = new JMenu("SNMP3 options");
 		snmp3submenu.setMnemonic(KeyEvent.VK_3);
@@ -186,9 +207,9 @@ public class SNMPMenuBar extends JMenuBar {
 		port.addActionListener(menuListener);
 		timeout.addActionListener(menuListener);
 		retries.addActionListener(menuListener);
-		_optionModel.setTitle(port.getText(), SNMPSessionOptionModel.PORT_KEY);
-		_optionModel.setTitle(timeout.getText(), SNMPSessionOptionModel.TIMEOUT_KEY);
-		_optionModel.setTitle(retries.getText(), SNMPSessionOptionModel.RETRIES_KEY);
+		_optionModel.setTitle(port.getText(), SNMPOptionModel.PORT_KEY);
+		_optionModel.setTitle(timeout.getText(), SNMPOptionModel.TIMEOUT_KEY);
+		_optionModel.setTitle(retries.getText(), SNMPOptionModel.RETRIES_KEY);
 		
 		JMenuItem secname = new JMenuItem("Security Name", KeyEvent.VK_N);
 		JMenu seclevsubmenu = new JMenu("Security Level");
@@ -209,13 +230,13 @@ public class SNMPMenuBar extends JMenuBar {
 		snmp3submenu.add(authtypesubmenu);
 		snmp3submenu.add(privpassphrase);
 		snmp3submenu.add(privtypesubmenu);
-		_optionModel.setTitle(secname.getText(), SNMPSessionOptionModel.SECURITY_NAME_KEY);
-		_optionModel.setTitle(auth.getText(), SNMPSessionOptionModel.AUTH_PASSPHRASE_KEY);
-		_optionModel.setTitle(privpassphrase.getText(), SNMPSessionOptionModel.PRIV_PASSPHRASE_KEY);
+		_optionModel.setTitle(secname.getText(), SNMPOptionModel.SECURITY_NAME_KEY);
+		_optionModel.setTitle(auth.getText(), SNMPOptionModel.AUTH_PASSPHRASE_KEY);
+		_optionModel.setTitle(privpassphrase.getText(), SNMPOptionModel.PRIV_PASSPHRASE_KEY);
 		
-		ActionListener seclevlis = new SNMPRadioButtonListener(_optionModel, SNMPSessionOptionModel.SECURITY_LEVEL_KEY);		
+		ActionListener seclevlis = new SNMPRadioButtonListener(_optionModel, SNMPOptionModel.SECURITY_LEVEL_KEY);		
 		ButtonGroup seclevgroup = new ButtonGroup();
-		String secdefault = _optionModel.get(SNMPSessionOptionModel.SECURITY_LEVEL_KEY);
+		String secdefault = _optionModel.get(SNMPOptionModel.SECURITY_LEVEL_KEY);
 		JRadioButtonMenuItem noAuthNoPriv = new JRadioButtonMenuItem("noAuthNoPriv", secdefault.equalsIgnoreCase("noAuthNoPriv"));
 		JRadioButtonMenuItem authNoPriv = new JRadioButtonMenuItem("authNoPriv", secdefault.equalsIgnoreCase("authNoPriv"));
 		JRadioButtonMenuItem authPriv = new JRadioButtonMenuItem("authPriv", secdefault.equalsIgnoreCase("authPriv"));
@@ -229,9 +250,9 @@ public class SNMPMenuBar extends JMenuBar {
 		seclevsubmenu.add(authNoPriv);
 		seclevsubmenu.add(authPriv);
 		
-		ActionListener authtypelis = new SNMPRadioButtonListener(_optionModel, SNMPSessionOptionModel.AUTH_TYPE_KEY);
+		ActionListener authtypelis = new SNMPRadioButtonListener(_optionModel, SNMPOptionModel.AUTH_TYPE_KEY);
 		ButtonGroup authtypegroup = new ButtonGroup();
-		String authtypedefault = _optionModel.get(SNMPSessionOptionModel.AUTH_TYPE_KEY);
+		String authtypedefault = _optionModel.get(SNMPOptionModel.AUTH_TYPE_KEY);
 		JRadioButtonMenuItem md5 = new JRadioButtonMenuItem("MD5", authtypedefault.equalsIgnoreCase("MD5"));
 		JRadioButtonMenuItem sha = new JRadioButtonMenuItem("SHA", authtypedefault.equalsIgnoreCase("SHA"));
 		md5.addActionListener(authtypelis);
@@ -241,9 +262,9 @@ public class SNMPMenuBar extends JMenuBar {
 		authtypesubmenu.add(md5);
 		authtypesubmenu.add(sha);
 		
-		ActionListener privtypelis = new SNMPRadioButtonListener(_optionModel, SNMPSessionOptionModel.PRIV_TYPE_KEY);
+		ActionListener privtypelis = new SNMPRadioButtonListener(_optionModel, SNMPOptionModel.PRIV_TYPE_KEY);
 		ButtonGroup privtypegroup = new ButtonGroup();
-		String privtypedefault = _optionModel.get(SNMPSessionOptionModel.PRIV_TYPE_KEY);
+		String privtypedefault = _optionModel.get(SNMPOptionModel.PRIV_TYPE_KEY);
 		JRadioButtonMenuItem des = new JRadioButtonMenuItem("DES", privtypedefault.equalsIgnoreCase("DES"));
 		JRadioButtonMenuItem des3 = new JRadioButtonMenuItem("3DES", privtypedefault.equalsIgnoreCase("3DES"));
 		JRadioButtonMenuItem aes128 = new JRadioButtonMenuItem("AES128", privtypedefault.equalsIgnoreCase("AES128"));
@@ -269,10 +290,13 @@ public class SNMPMenuBar extends JMenuBar {
 		optmenu.add(port);
 		optmenu.add(timeout);
 		optmenu.add(retries);
+*/
+
 		
 		add(filemenu);
 		add(editmenu);
-		add(optmenu);
+		add(commandmenu);
+		//add(optmenu);
 		
 		//add(Box.createHorizontalStrut(SNMPSessionFrame.WIDTH/7));
 
@@ -280,6 +304,8 @@ public class SNMPMenuBar extends JMenuBar {
 		add(_mibMenu);
 	}
 	
+/*
+
 	//Listeners
 	private class SNMPSetOptionListener implements ActionListener {
 		public void actionPerformed(ActionEvent event) {
@@ -298,5 +324,6 @@ public class SNMPMenuBar extends JMenuBar {
 		}
 		
 	}
+*/
 
 }

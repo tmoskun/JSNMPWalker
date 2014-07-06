@@ -9,12 +9,15 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragSource;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +37,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
@@ -57,6 +61,8 @@ import net.percederberg.mibble.value.ObjectIdentifierValue;
 
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 import com.ezcode.jsnmpwalker.listener.MibDragGestureListener;
+import com.ezcode.jsnmpwalker.menu.MibPopupMenu;
+import com.ezcode.jsnmpwalker.menu.SNMPPopupMenu;
 
 public class MibTreePanel extends JPanel {
 	private JMenu _mibMenu;
@@ -89,7 +95,6 @@ public class MibTreePanel extends JPanel {
 		_mibLoader = new MibLoader();
 		_mibTree = MibTreeBuilder.getInstance().getTree();
 		_mibTree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
-		
 		JScrollPane mibTreePane = new JScrollPane();
 		//mibTreePane.getViewport().setPreferredSize(new Dimension(250, 800));
 		mibTreePane.getViewport().add(_mibTree);
@@ -106,14 +111,45 @@ public class MibTreePanel extends JPanel {
             	TreePath path = _mibTree.getSelectionPath();
             	if(path == null) {
 	            	showOid.setText("");
-	            	_mibBrowserPane.setMibDescription("");
+	            	//showMibDescription(null);
 	            } else {
 	            	MibNode node = (MibNode) path.getLastPathComponent();
 	            	showOid.setText(node.getOid());
-	            	_mibBrowserPane.setMibDescription(node.getDescription());
+	            	//showMibDescription(node);
 	            }
             }
         });
+		_mibTree.addMouseListener(new MouseAdapter() {
+			private void MibPopupEvent(MouseEvent event) {
+				int x = event.getX();
+				int y = event.getY();
+	            JTree tree = (JTree)event.getSource(); 			
+				TreePath path = tree.getPathForLocation(x, y);
+				if (path == null)
+					return;	
+				tree.getSelectionModel().addSelectionPath(path);
+				//tree.setSelectionPath(path);
+				MibNode node = (MibNode) path.getLastPathComponent();
+				if(node.getValue() != null) {
+					MibPopupMenu popup = new MibPopupMenu(MibTreePanel.this, new Point(x, y));
+					popup.buildMenu();
+					popup.show(tree, x, y);
+				}
+			}
+			
+			public void mousePressed(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					MibPopupEvent(e);
+				} 
+			}
+			
+			public void mouseReleased(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					MibPopupEvent(e);
+				} 
+			}
+
+		});
 		DragSource mibDragSource = new DragSource();
 		mibDragSource.createDefaultDragGestureRecognizer(_mibTree,
 				DnDConstants.ACTION_COPY, new MibDragGestureListener(_mibTree));
@@ -121,6 +157,20 @@ public class MibTreePanel extends JPanel {
 		add(mibTreePane, BorderLayout.CENTER);
 		add(oidPane, BorderLayout.SOUTH);
 		
+	}
+	
+	public void showMibDescription(MibNode node) {
+		showMibDescription(node, false);
+	}
+	
+	public void showMibDescription(MibNode node, boolean newTab) {
+		if(node != null) {
+			_mibBrowserPane.setMibDescription(node, newTab);
+		}
+	}
+	
+	public JTree getTree() {
+		return _mibTree;
 	}
 	
 /*
@@ -277,7 +327,6 @@ public class MibTreePanel extends JPanel {
     public void unloadMib(String name) {
         Mib mib = _mibLoader.getMib(name);
         if (mib != null) {
-            //File file = mib.getFile();
             try {
                 _mibLoader.unload(name);
                 MibTreeBuilder.getInstance().unloadMib(name);
@@ -298,19 +347,6 @@ public class MibTreePanel extends JPanel {
 		enableButtons(false);
     }
     
-/*
-    public boolean containsMib(String mib) {
-    	DefaultMutableTreeNode root = (DefaultMutableTreeNode) _mibTree.getModel().getRoot();
-    	Enumeration<DefaultMutableTreeNode> mibs = root.children();
-    	while(mibs.hasMoreElements()) {
-    		DefaultMutableTreeNode node = mibs.nextElement();
-    		if(mib.equalsIgnoreCase(node.getUserObject().toString())) {
-    			return true;
-    		}
-    	}
-    	return false;
-    }
-*/
     public boolean containsMib(String mibFile) {
     	return findMibFile(mibFile) != null;
     }
@@ -373,6 +409,7 @@ public class MibTreePanel extends JPanel {
     	_unloadall.setEnabled(enable);
     }
     
+    
     private abstract class MibSearchListener implements ActionListener {
     	protected Iterator<TreeNode> _mibSearch;
     	
@@ -400,36 +437,6 @@ public class MibTreePanel extends JPanel {
 				_searchKey = key;
 			}
 			return findMibNode(_mibSearch, key, prevResult, true);
-/*
-        	TreePath path  = null;
-        	TreePath foundPath = null;
-			if(key != null && key.length() > 0) {
-				_searchKey = key;
-    			((MibSearchIterator)_mibSearch).init(prevResult);
-    			while(_mibSearch.hasNext()) {
-    				//path = _mibSearch.next();
-    				MibNode node = (MibNode) _mibSearch.next();
-    				//MibNode node = (MibNode) path.getLastPathComponent();
-    				String name = node.getName().replaceAll("\\(\\d+\\)\\s*$", "").trim();
-    				String oid = node.getOid().trim();
-    				if(key.equalsIgnoreCase(name) || key.equals(oid)) {
-    					path = new TreePath(node.getPath());
-    					foundPath = path;
-    					_mibTree.setSelectionPath(path);
-    					Rectangle bounds = _mibTree.getPathBounds(path);
-    					_mibTree.scrollRectToVisible(bounds);
-    					break;
-    				}
-    			}
-    			//System.out.println("result " + foundPath);
-    			if(foundPath == null)
-    				JOptionPane.showMessageDialog(null, "Key not found");
-			}
-//			} else {
-//				JOptionPane.showMessageDialog(null, "Key not provided");
-//			}
-			return foundPath;
-*/
         }
         
         protected TreePath findNext() {
@@ -511,8 +518,6 @@ public class MibTreePanel extends JPanel {
         	if(prevResult != null) { 
         		startPath = prevResult;
         	} else {
-//        		selPath = _mibTree.getSelectionPath();
-//    		if(selPath == null)
         		DefaultMutableTreeNode lastNode = (DefaultMutableTreeNode) root.getLastChild();
     			startPath = _forward ? _mibTree.getPathForRow(0) : new TreePath(lastNode.getPath());
        	    }
@@ -579,8 +584,6 @@ public class MibTreePanel extends JPanel {
 		@Override
 		public boolean hasNext() {
 			return _traversalOrder.hasMoreElements() || !_nodes.isEmpty();
-			//return !_stack.isEmpty() || !_nodes.isEmpty();
-			//return _depthFirstIterator.hasNext() || !_nodes.isEmpty();
 		}
 
 		@Override
@@ -590,9 +593,6 @@ public class MibTreePanel extends JPanel {
 				setTraversal(node);
 				_nodes.remove(0);
 			}
-			//TreeNode next = (TreeNode) _traversalOrder.nextElement();
-			//System.out.println(next);
-			//return next;
 			return (TreeNode) _traversalOrder.nextElement();
 		}
 
@@ -602,7 +602,7 @@ public class MibTreePanel extends JPanel {
 		}
 					
     }
-      
+         
 	
     /**
      * A background MIB loader. This class is needed in order to

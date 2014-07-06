@@ -6,7 +6,6 @@ package com.ezcode.jsnmpwalker;
  */
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -23,57 +22,37 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.InetAddress;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JRootPane;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 
 import net.percederberg.mibble.MibLoaderException;
 
 import com.ezcode.jsnmpwalker.action.ButtonAction;
 import com.ezcode.jsnmpwalker.command.TreeNodeCommandStack;
-import com.ezcode.jsnmpwalker.data.SNMPSessionOptionModel;
 import com.ezcode.jsnmpwalker.data.SNMPTreeData;
-import com.ezcode.jsnmpwalker.layout.WrapLayout;
-import com.ezcode.jsnmpwalker.listener.SNMPRadioButtonListener;
 import com.ezcode.jsnmpwalker.menu.SNMPMenuBar;
 import com.ezcode.jsnmpwalker.panel.DataPanel;
 import com.ezcode.jsnmpwalker.panel.DevicePanel;
@@ -82,7 +61,6 @@ import com.ezcode.jsnmpwalker.panel.MibTreePanel;
 import com.ezcode.jsnmpwalker.panel.SNMPOutputPanel;
 import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
 import com.ezcode.jsnmpwalker.storage.SNMPConfigurationStorage;
-import com.ezcode.jsnmpwalker.worker.SNMPSessionWorker;
 
 public abstract class SNMPSessionFrame extends JFrame {
 
@@ -100,7 +78,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 	private TreeNodeCommandStack _commandStack;
 	
 	//private Map<String, JTextField> _fields;
-	private SNMPSessionOptionModel _optionModel;
+	//private SNMPSessionOptionModel _optionModel;
 
 	//private String _logFile = "";
 	
@@ -140,7 +118,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 		} 
 		
 		//_fields = new Hashtable<String, JTextField>();
-		_optionModel = new SNMPSessionOptionModel();
+		//_optionModel = new SNMPSessionOptionModel();
 	
 		_confStorage = new SNMPConfigurationStorage();
 		
@@ -155,7 +133,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 	
 	protected void init() {
 		
-		_mibBrowserPane = new MibBrowserPanel();
+		_mibBrowserPane = new MibBrowserPanel(this);
 		_outputPane = new SNMPOutputPanel(this);
 			
 		//left panel
@@ -168,12 +146,12 @@ public abstract class SNMPSessionFrame extends JFrame {
 		loadDefaultMibs();
 		
 		//Tree to set up data: commands, ips and oids
-		_treePane = new SNMPTreePanel((MibTreePanel) _dataPane.getMibPanel(), _commandStack);
+		_treePane = new SNMPTreePanel(this, (MibTreePanel) _dataPane.getMibPanel(), _commandStack);
 		_tree = _treePane.getTree();
 		_treeModel = (DefaultTreeModel) _tree.getModel();
 		
 		snmpPane.add(_treePane, BorderLayout.CENTER);
-
+		
 		//((MibPanel) _dataPane.getMibPanel()).printPreorder();
 		
 		JSplitPane leftSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, snmpPane, _dataPane);
@@ -190,6 +168,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 				
 		JPanel centerPane = new JPanel(new BorderLayout());
 		
+/*		
 		//Community and SNMP version fields
 		JPanel opts = new JPanel(new WrapLayout(FlowLayout.LEFT));
 		opts.add(new JLabel("Community"));
@@ -235,6 +214,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 		opts.add(v3);
 		
 		centerPane.add(opts, BorderLayout.NORTH);
+*/
 		
 /*
 		//TODO: filters	
@@ -293,7 +273,8 @@ public abstract class SNMPSessionFrame extends JFrame {
 					}
 				}
 				
-				runSNMP(treeData, getOptionModel(), logFile);
+				//runSNMP(treeData, getOptionModel(), logFile);
+				runSNMP(treeData, logFile);
 			}
 			
 		});
@@ -321,7 +302,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 		JSplitPane rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, _mibBrowserPane, _outputPane);
 		Dimension rightPanelMinSize = new Dimension(300, 200);
 		rightSplitPane.setOneTouchExpandable(true);
-		rightSplitPane.setDividerLocation(HEIGHT/3);
+		rightSplitPane.setDividerLocation(HEIGHT/2);
 		_mibBrowserPane.setMinimumSize(rightPanelMinSize);
 		_outputPane.setMinimumSize(rightPanelMinSize);
 		
@@ -370,7 +351,8 @@ public abstract class SNMPSessionFrame extends JFrame {
 				path = getSaveConfigPath();
 			}
 			if(path != null) {
-				_confStorage.saveConfiguration(_treeModel, _optionModel, path);
+				//_confStorage.saveConfiguration(_treeModel, _optionModel, path);
+				_confStorage.saveConfiguration(_treeModel, path);
 				return true;
 			} else {
 				return false;
@@ -474,10 +456,12 @@ public abstract class SNMPSessionFrame extends JFrame {
 		}
 		return path;
 	}
-	
+
+/*
 	public SNMPSessionOptionModel getOptionModel() {
-		return _optionModel;
+		return _treePane.getOptionModel();
 	}
+*/
 	
 	public SNMPConfigurationStorage getConfStorage() {
 		return _confStorage;
@@ -509,9 +493,9 @@ public abstract class SNMPSessionFrame extends JFrame {
 				TreeNode[] path = node.getPath();
 				//0 - root, 1 - command, 2 - ip, 3 - oid
 				String command = (String) ((DefaultMutableTreeNode) path[1]).getUserObject();
-				if((path.length == 3 && SNMPTreeData.isMultiOIDCommand(command)) || (path.length == 4 && _treeModel.isLeaf(node))) {
+				if((path.length == 3 && SNMPTreeData.isMultiOIDMethod(command)) || (path.length == 4 && _treeModel.isLeaf(node))) {
 					SNMPTreeData row = new SNMPTreeData(path);
-					if(valid = row.isValidNode()) {
+					if(valid = row.isValidCommand()) {
 						if(path.length == 4) {
 							String oid = (String) node.getUserObject();
 							if(valid &= verifyOID(oid)) {
@@ -590,7 +574,8 @@ public abstract class SNMPSessionFrame extends JFrame {
 	
 	public abstract void doneScan(SwingWorker worker);
 	
-	public abstract void runSNMP(ArrayList<SNMPTreeData> treeData, SNMPSessionOptionModel model, String filename);
+	//public abstract void runSNMP(ArrayList<SNMPTreeData> treeData, SNMPSessionOptionModel model, String filename);
+	public abstract void runSNMP(ArrayList<SNMPTreeData> treeData, String filename);
 	
 	//public abstract boolean stopSNMP();
 	public abstract void stopSNMP();

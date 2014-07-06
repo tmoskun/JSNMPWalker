@@ -1,6 +1,6 @@
 package com.ezcode.jsnmpwalker.data;
 /**
- * Copyright(c) 2012-2013 
+ * Copyright(c) 2012-2014 
  * @author tmoskun, ezcode (Zlatco)
  * This Software is distributed under GPLv3 license
  */

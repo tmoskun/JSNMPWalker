@@ -7,17 +7,12 @@ package com.ezcode.jsnmpwalker.panel;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
@@ -34,9 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -53,16 +46,11 @@ import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 import javax.swing.text.Utilities;
 
-import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 import com.ezcode.jsnmpwalker.action.ButtonAction;
 import com.ezcode.jsnmpwalker.layout.WrapLayout;
+import com.ezcode.jsnmpwalker.utils.PanelUtils;
 
 public class SNMPOutputPanel extends JPanel {
-	private static final String TEXT_SEARCH = "Search";
-	private static final String TEXT_STOP = "Stop";
-	private static final Color HILIT_COLOR = Color.YELLOW;
-	private static final int FIELD_WIDTH = Math.min(SNMPSessionFrame.WIDTH/6, 300);
-	
 	private JFrame _frame;
 	private JTextField _logFileField;
 	private String _logFile = "";
@@ -90,7 +78,7 @@ public class SNMPOutputPanel extends JPanel {
 		_frame = frame;
 		_logFile = logFile;
 		_hilit = new DefaultHighlighter();
-		_painter = new DefaultHighlighter.DefaultHighlightPainter(HILIT_COLOR);
+		_painter = new DefaultHighlighter.DefaultHighlightPainter(PanelUtils.HILIT_COLOR);
 		_searchPositions = new TreeSet<Integer>();
 		_searchIterator = _searchPositions.iterator();
 		java.net.URL imgURL = getClass().getResource("/img/loader.gif");
@@ -108,7 +96,7 @@ public class SNMPOutputPanel extends JPanel {
 		JPanel filePane = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		filePane.add(new JLabel("Output SNMP result to "));
 		_logFileField = new JTextField();
-		_logFileField.setPreferredSize(new Dimension(FIELD_WIDTH, 20));
+		_logFileField.setPreferredSize(new Dimension(PanelUtils.FIELD_WIDTH, 20));
 		filePane.add(_logFileField);
 		JButton choosefile = new JButton("Directory/File");
 		final JFileChooser fc = new JFileChooser();
@@ -148,7 +136,7 @@ public class SNMPOutputPanel extends JPanel {
 		_docAttributes = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.BLACK);
 		JPanel searchPane = new JPanel(new WrapLayout(FlowLayout.LEFT));
 		_searchField = new JTextField();
-		_searchField.setPreferredSize(new Dimension(FIELD_WIDTH, 20));
+		_searchField.setPreferredSize(new Dimension(PanelUtils.FIELD_WIDTH, 20));
 		SearchListener searchLis = new SearchListener(_searchField);
 		_searchField.addActionListener(searchLis);
 		_searchField.getDocument().addDocumentListener(new DocumentListener() {
@@ -166,7 +154,7 @@ public class SNMPOutputPanel extends JPanel {
 			}	
 		});
 		
-		_searchButton = new JButton(TEXT_SEARCH);
+		_searchButton = new JButton(PanelUtils.TEXT_SEARCH);
 		_searchButton.addActionListener(searchLis);
 		_resetSearchButton = new JButton("Reset");
 		_resetSearchButton.addActionListener(new ActionListener() {
@@ -231,6 +219,18 @@ public class SNMPOutputPanel extends JPanel {
 		_logArea.setCaretPosition(0);
 	}
 	
+    public void toggleSearchControls(boolean isrun) {
+    	_searchField.setEnabled(!isrun);
+    	_resetSearchButton.setEnabled(!isrun);
+    	_regCheckBox.setEnabled(!isrun);
+    	if(isrun) {
+    		_searchButton.setText(PanelUtils.TEXT_STOP);
+    	} else {
+    		_searchButton.setText(PanelUtils.TEXT_SEARCH);
+    	}
+    	_loadingImg.setVisible(isrun);
+    }
+	
 	public String getResult() {
 		String result = "";
 		Document doc = _logArea.getDocument();
@@ -271,7 +271,7 @@ public class SNMPOutputPanel extends JPanel {
 			if(obj instanceof JButton) {
 				name = ((JButton) obj).getText();
 			}
-			if(name.equals(TEXT_STOP)) {
+			if(name.equals(PanelUtils.TEXT_STOP)) {
 				_searcherThread.interrupt();
 			} else {
 				Document doc = _logArea.getDocument();
@@ -279,7 +279,6 @@ public class SNMPOutputPanel extends JPanel {
 				try {
 					str = doc.getText(0, doc.getLength());
 				} catch (BadLocationException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 				String searchKey = _searchField.getText();
@@ -313,24 +312,13 @@ public class SNMPOutputPanel extends JPanel {
 				}
         	}
         	resetSearch(true);
-        	toggleSearch(false);
+        	toggleSearchControls(false);
         }
           
-        private void toggleSearch(boolean isrun) {
-        	_searchField.setEnabled(!isrun);
-        	_resetSearchButton.setEnabled(!isrun);
-        	_regCheckBox.setEnabled(!isrun);
-        	if(isrun) {
-        		_searchButton.setText(TEXT_STOP);
-        	} else {
-        		_searchButton.setText(TEXT_SEARCH);
-        	}
-        	_loadingImg.setVisible(isrun);
-        }
 
 		@Override
 		public void run() {	
-			toggleSearch(true);
+			toggleSearchControls(true);
 			if(_searchKey.equals(_currentSearchKey)) {
 				//reset the iterator if it's finished
 				if(!_searchIterator.hasNext()) {
@@ -353,7 +341,7 @@ public class SNMPOutputPanel extends JPanel {
 				}
 				_searchIterator = _searchPositions.iterator();
 			}
-			toggleSearch(false);
+			toggleSearchControls(false);
 			if(_searchIterator.hasNext()) {
 				int position = _searchIterator.next();
 				int end = position + _currentSearchKey.length();

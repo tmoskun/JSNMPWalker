@@ -28,13 +28,10 @@ import javax.swing.tree.TreePath;
 
 import com.ezcode.jsnmpwalker.command.EditCommand;
 import com.ezcode.jsnmpwalker.command.TreeNodeCommandStack;
+import com.ezcode.jsnmpwalker.data.SNMPDeviceData;
+import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
 
 public class SNMPTreeCellEditor implements TreeCellEditor {
-	
-	public static final int ROOT = 1;
-	public static final int COMMAND_NODE = 2;
-	public static final int IP_NODE = 3;
-	public static final int OID_NODE = 4;
 	
 	private SNMPCellEditor _fieldEditor;
 	private TreeNodeCommandStack _commandStack;
@@ -53,9 +50,9 @@ public class SNMPTreeCellEditor implements TreeCellEditor {
 	    TreePath path = tree.getPathForRow(row);
 	    if(value == null || value.toString() == null || value.toString().length() == 0) {
 		    switch(path.getPathCount()) {
-		    	case COMMAND_NODE: _fieldEditor.setText("Add Method..."); break;
-		    	case IP_NODE: _fieldEditor.setText("Add IP..."); break;
-		    	case OID_NODE: _fieldEditor.setText("Add OID..."); break;
+		    	case SNMPTreePanel.COMMAND_NODE: _fieldEditor.setText("Add Method..."); break;
+		    	case SNMPTreePanel.IP_NODE: _fieldEditor.setText("Add IP..."); break;
+		    	case SNMPTreePanel.OID_NODE: _fieldEditor.setText("Add OID..."); break;
 		    	default: break;
 		    }
 	    } else {
@@ -80,7 +77,7 @@ public class SNMPTreeCellEditor implements TreeCellEditor {
 	        MouseEvent mouseEvent = (MouseEvent)event;  
 	        JTree tree = (JTree)event.getSource();  
 	        TreePath path = tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());  
-	        return path.getPathCount() > COMMAND_NODE; // root and command are not editable  
+	        return path.getPathCount() > SNMPTreePanel.COMMAND_NODE; // root and command are not editable  
 	    } else if(event == null && _fieldEditor.isCellEditable(event)) {
 	    	return true; //editing called explicitly
 	    }
@@ -118,7 +115,7 @@ public class SNMPTreeCellEditor implements TreeCellEditor {
 		
 		
 	private class SNMPCellEditor extends JTextField implements CellEditor {
-		private String _value = "";
+		private Object _value = "";
 		private Vector _listeners;
 		private ActionListener _editListener;
 			
@@ -165,7 +162,7 @@ public class SNMPTreeCellEditor implements TreeCellEditor {
 			this.addMouseListener(new MouseAdapter() {
 				//remove text when the field is clicked, if the text is default
 				public void mousePressed(MouseEvent event) {
-					if(_value == null || _value.length() == 0) {
+					if(_value == null || _value.toString().length() == 0) {
 						setText("");
 					}
 				} 
@@ -231,12 +228,18 @@ public class SNMPTreeCellEditor implements TreeCellEditor {
 		public boolean stopCellEditing() {
 			String text = getText().trim();
 			if(isValidText(text)) {
-				if(_tree.isEditing()) {
-					_value = text;
-				} else if(_tree.getSelectionCount() > 0) {
+				//if(_tree.isEditing()) {
+				//	_value = text;
+				//} else if(_tree.getSelectionCount() > 0) {
+				//_value = text;
+				if(_tree.getSelectionCount() > 0) {
 					TreePath path = _tree.getSelectionPath();
 					DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-					node.setUserObject(getText());
+					Object obj = (path.getPathCount() == SNMPTreePanel.IP_NODE) ? new SNMPDeviceData(text) : text;
+					if(_tree.isEditing())
+						_value = obj;
+					else
+						node.setUserObject(obj);
 				} else {
 					_value = text;
 				}

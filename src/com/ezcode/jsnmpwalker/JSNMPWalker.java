@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
-import com.ezcode.jsnmpwalker.data.SNMPSessionOptionModel;
+import com.ezcode.jsnmpwalker.data.SNMPOptionModel;
 import com.ezcode.jsnmpwalker.data.SNMPTreeData;
 import com.ezcode.jsnmpwalker.formatter.SNMPFormatter;
 import com.ezcode.jsnmpwalker.publish.SNMPPublisher;
@@ -215,7 +215,7 @@ public class JSNMPWalker extends SNMPSessionFrame {
 		done(_netScanLatch, _netScanService, worker, _netScanTerminationThread);	
 	}
 
-	public void runSNMP(ArrayList<SNMPTreeData> treeData, SNMPSessionOptionModel model, String filename) {
+	public void runSNMP(ArrayList<SNMPTreeData> treeData, String filename) {
 		closeWriter();
 		SNMPFormatter.restart();
 		String header = _formatter.writeHeader();
@@ -248,8 +248,7 @@ public class JSNMPWalker extends SNMPSessionFrame {
 		resetOutputSearch();
 		toggleSNMPRun(true);
 		for (SNMPTreeData d : treeData) {
-			SwingWorker worker = new SNMPSessionWorker(this, _formatter, d,
-					getOptionModel(), snmpQueue);
+			SwingWorker worker = new SNMPSessionWorker(this, _formatter, d, snmpQueue);
 			_snmpWorkers.add(worker);
 			_snmpService.submit(worker);
 		}
