@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -498,21 +499,26 @@ public abstract class SNMPSessionFrame extends JFrame {
 					if(valid = row.isValidCommand()) {
 						if(path.length == 4) {
 							String oid = (String) node.getUserObject();
-							if(valid &= verifyOID(oid)) {
+							boolean validOID = verifyOID(oid);
+							if(validOID) {
 								row.addOID(oid);
 							}
+							valid &= validOID;
 						} else if(path.length == 3) {
 							Enumeration<DefaultMutableTreeNode> oidNodes = getChildren(node);
 							while(oidNodes.hasMoreElements()) {
-								valid &= verifyOIDNode(oidNodes.nextElement());
+								String oid = (String)oidNodes.nextElement().getUserObject();
+								if(oid != null && oid.length() > 0) {
+									boolean validOID = verifyOID(oid);
+									if(validOID)
+										row.addOID(oid);
+									valid &= validOID;
+								}
 							}
-							if(valid) {
-								row.addAllOIDs(node);
-							}	
 						}
-						valid &= row.getOids().size() > 0;
+						//valid &= row.getOids().size() > 0;
 					}
-					if(valid) {
+					if(valid && row.getOids().size() > 0) {
 						data.add(row);
 					} 
 				} else {		
@@ -527,6 +533,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 	private boolean verifyOIDNode(DefaultMutableTreeNode node) {
 		return verifyOID((String) node.getUserObject());
 	}
+	
 	
 	private boolean verifyOID(String oid) {
 		boolean valid = true;

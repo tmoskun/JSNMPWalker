@@ -132,7 +132,7 @@ public class CommandDialog extends JDialog {
 		add(_tp, BorderLayout.CENTER);
 		final JPanel buttonPane = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		final JButton saveButt = new JButton("Save");
-		saveButt.setMnemonic(KeyEvent.VK_S);
+		//saveButt.setMnemonic(KeyEvent.VK_S);
 		saveButt.addActionListener(new ActionListener() {
 
 			@Override
@@ -144,7 +144,7 @@ public class CommandDialog extends JDialog {
 		});
 		buttonPane.add(saveButt);
 		final JButton cancelButt = new JButton("Cancel");
-		cancelButt.setMnemonic(KeyEvent.VK_C);
+		//cancelButt.setMnemonic(KeyEvent.VK_C);
 		cancelButt.addActionListener(new ActionListener() {
 
 			@Override
@@ -158,11 +158,11 @@ public class CommandDialog extends JDialog {
 		add(buttonPane, BorderLayout.SOUTH);
 		
 		//set keystrokes for action buttons
-		saveButt.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0), "Save");
-		saveButt.getActionMap().put("Save", new ButtonAction(this, saveButt));
+		//saveButt.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0), "Save");
+		//saveButt.getActionMap().put("Save", new ButtonAction(this, saveButt));
 		
-		cancelButt.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_C, 0), "Cancel");
-		cancelButt.getActionMap().put("Cancel", new ButtonAction(this, cancelButt));
+		//cancelButt.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_C, 0), "Cancel");
+		//cancelButt.getActionMap().put("Cancel", new ButtonAction(this, cancelButt));
 		
 		setSize(500, 350);
 		setLocationRelativeTo(null);

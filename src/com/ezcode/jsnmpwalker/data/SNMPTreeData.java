@@ -147,6 +147,7 @@ public class SNMPTreeData {
 		addAllOIDs(oidNodes);
 	}
 	
+	
 /*
 	public boolean isValidCommand() {
 		return _command != null && _ip != null && _command.length() > 0 && _ip.length() > 0 

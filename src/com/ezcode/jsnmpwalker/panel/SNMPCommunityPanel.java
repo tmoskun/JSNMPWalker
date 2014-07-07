@@ -129,7 +129,10 @@ public class SNMPCommunityPanel extends JPanel {
 	}
 	
 	public String[] getOids() {
-		return _oidArea.getText().split("[,;\n]");
+		String oids = _oidArea.getText();
+		if(oids == null || oids.length() == 0)
+			return new String[0];
+		return oids.split("[,;\n]");
 	}
 	
 	public void showCommunity(String version) {
