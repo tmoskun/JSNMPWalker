@@ -194,8 +194,12 @@ public class SNMPTreePanel extends JPanel  implements ClipboardOwner {
 		//View options panel
 		_snmpOptionPane.setUI(new MetalTabbedPaneUI());	
 		java.net.URL imgURL = getClass().getResource("/img/properties.gif");
+		ImageIcon icon = null;
+		if(imgURL != null) {
+			icon = new ImageIcon(imgURL);
+		}
 		_snmpOptionPane.addTab("", null);
-		final JLabel bookmark = new JLabel("SNMP Options", new ImageIcon(imgURL), SwingConstants.LEFT);
+		final JLabel bookmark = new JLabel("SNMP Options", icon, SwingConstants.LEFT);
 		bookmark.setBackground(PanelUtils.UI_DEFAULTS.getColor("Button.light"));
 		_snmpOptionPane.setTabComponentAt(0, bookmark);
 		_snmpOptionPane.setSelectedIndex(-1);

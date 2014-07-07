@@ -25,11 +25,11 @@ import com.ezcode.jsnmpwalker.utils.PanelUtils;
 public class SNMPSecurityPanel extends JPanel {
     final private SNMPOptionModel _optionModel;
 	final private JTextField _name;
-	final private JComboBox<String> _level;
+	final private JComboBox _level;
 	final private JTextField _authPass;
-	final private JComboBox<String> _authType;
+	final private JComboBox _authType;
 	final private JTextField _privPass;
-	final private JComboBox<String> _privType;
+	final private JComboBox _privType;
 	
 	public SNMPSecurityPanel(SNMPOptionModel optionModel) {
 		_optionModel = optionModel;
@@ -47,7 +47,7 @@ public class SNMPSecurityPanel extends JPanel {
 		
 	    JLabel levelLabel = new JLabel("Security Level: ", JLabel.TRAILING);
 	    add(levelLabel);
-	    _level = new JComboBox<String>(SNMPOptionModel.SECURITY_LEVELS);
+	    _level = new JComboBox(SNMPOptionModel.SECURITY_LEVELS);
 	    _level.setSelectedItem(_optionModel.get(SNMPOptionModel.SECURITY_LEVEL_KEY));
 	    add(_level);
 	    levelLabel.setLabelFor(_level);
@@ -68,7 +68,7 @@ public class SNMPSecurityPanel extends JPanel {
 	
 	    JLabel authTypeLabel = new JLabel("Authentication Type: ", JLabel.TRAILING);
 	    add(authTypeLabel);
-	    _authType = new JComboBox<String>(SNMPOptionModel.AUTH_TYPES);
+	    _authType = new JComboBox(SNMPOptionModel.AUTH_TYPES);
 	    _authType.setSelectedItem(_optionModel.get(SNMPOptionModel.AUTH_TYPE_KEY));
 	    add(_authType);
 	    authTypeLabel.setLabelFor(_authType);
@@ -84,7 +84,7 @@ public class SNMPSecurityPanel extends JPanel {
 	    
 	    JLabel privTypeLabel = new JLabel("Privacy Type: ", JLabel.TRAILING);
 	    add(privTypeLabel);
-	    _privType = new JComboBox<String>(SNMPOptionModel.PRIV_TYPES);
+	    _privType = new JComboBox(SNMPOptionModel.PRIV_TYPES);
 	    _privType.setSelectedItem(_optionModel.get(SNMPOptionModel.PRIV_TYPE_KEY));
 	    add(_privType);
 	    privTypeLabel.setLabelFor(_privType);

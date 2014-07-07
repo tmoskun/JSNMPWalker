@@ -33,7 +33,7 @@ import com.ezcode.jsnmpwalker.listener.SNMPRadioButtonListener;
 import com.ezcode.jsnmpwalker.utils.PanelUtils;
 
 public class SNMPCommunityPanel extends JPanel {
-	private JComboBox<String> _methodCombo = null;
+	private JComboBox _methodCombo = null;
 	private JTextField _ipField = null;
 	//private JTextField _oidField = null;
 	private JTextArea _oidArea = null;
@@ -52,7 +52,7 @@ public class SNMPCommunityPanel extends JPanel {
 	
 	public SNMPCommunityPanel(SNMPOptionModel optionModel, String command, String ip, List<String> oids) {
 		_optionModel = optionModel;
-		_methodCombo = new JComboBox<String>(SNMPTreeData.METHODS);
+		_methodCombo = new JComboBox(SNMPTreeData.METHODS);
 		_methodCombo.setSelectedItem(command);
 		_ipField = new JTextField(ip);
 		_ipField.setPreferredSize(PanelUtils.FIELD_DIM);

@@ -159,6 +159,23 @@ public class MibTreePanel extends JPanel {
 		
 	}
 	
+	private void showMibDescription(boolean newTab) {
+		showMibDescription(_mibTree.getSelectionPath(), newTab);
+	}
+	
+	private void showMibDescription(TreePath path, boolean newTab) {
+		if(path != null) {
+			TreeNode node = (TreeNode) path.getLastPathComponent();
+			if(node instanceof MibNode && ((MibNode) node).getValue() != null) {
+				MibTreePanel.this.showMibDescription((MibNode) node, newTab);
+			} else {
+				JOptionPane.showMessageDialog(MibTreePanel.this, "No MIB selected");
+			}
+		} else {
+			JOptionPane.showMessageDialog(MibTreePanel.this, "No MIB selected");
+		}
+	}
+	
 	public void showMibDescription(MibNode node) {
 		showMibDescription(node, false);
 	}
@@ -186,6 +203,19 @@ public class MibTreePanel extends JPanel {
 	private void createMenu() {
 		_mibMenu = new JMenu("MIB");
 		_mibMenu.setMnemonic(KeyEvent.VK_M);
+		JMenuItem showItem = new JMenuItem(MibPopupMenu.SHOW_ITEM, KeyEvent.VK_S);
+		showItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				MibTreePanel.this.showMibDescription(false);
+			}
+			
+		});
+		JMenuItem showItemNewWin = new JMenuItem(MibPopupMenu.SHOW_NEW_WIN_ITEM, KeyEvent.VK_E);
+		showItemNewWin.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				MibTreePanel.this.showMibDescription(true);
+			}
+		});
 		_findmib = new JMenuItem("Find MIB node", KeyEvent.VK_F);
 		_findmib.setEnabled(false);
 		_findnext = new JMenuItem("Find next MIB node", KeyEvent.VK_N);
@@ -201,10 +231,13 @@ public class MibTreePanel extends JPanel {
 		_unloadall = new JMenuItem("Unload All", KeyEvent.VK_A);
 		_unloadall.setEnabled(false);
 		
-		_findmib.addActionListener(new KeyMibSearchListener());
+		_findmib.addActionListener(new KeywordMibSearchListener());
 		_findnext.addActionListener(new NextMibSearchListener());
 		_findprev.addActionListener(new PrevMibSearchListener());
 		
+		_mibMenu.add(showItem);
+		_mibMenu.add(showItemNewWin);
+		_mibMenu.addSeparator();
 		_mibMenu.add(_findmib);
 		_mibMenu.add(_findnext);
 		_mibMenu.add(_findprev);
@@ -447,9 +480,9 @@ public class MibTreePanel extends JPanel {
         }
     }
     
-    private class KeyMibSearchListener extends MibSearchListener {
+    private class KeywordMibSearchListener extends MibSearchListener {
     	
-    	public KeyMibSearchListener() {
+    	public KeywordMibSearchListener() {
 			super(true);
 		}
     	
