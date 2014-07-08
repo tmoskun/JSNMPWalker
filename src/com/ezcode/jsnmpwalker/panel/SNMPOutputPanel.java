@@ -86,6 +86,7 @@ public class SNMPOutputPanel extends JPanel {
 			_loadingImg = new JLabel(new ImageIcon(imgURL));
 			_loadingImg.setVisible(false);
 		} else {
+			_loadingImg = new JLabel("Running...");
 			System.out.println("image not found");
 		}
 		init();
