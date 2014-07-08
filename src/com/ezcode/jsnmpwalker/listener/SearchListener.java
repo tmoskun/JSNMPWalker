@@ -22,17 +22,19 @@ import com.ezcode.jsnmpwalker.utils.PanelUtils;
 public class SearchListener implements ActionListener {
 	private Searchable _searchable;
 	private JTextField _searchField;
+	private JCheckBox _caseSensitiveCheckBox;
 	private JCheckBox _regexCheckBox;
 	
 	private Thread _searcherThread;
 	private Dialog _dialog;
 	
-	public SearchListener(JTextField searchField, JCheckBox regexCheckBox) {
-		this(searchField, regexCheckBox, null);
+	public SearchListener(JTextField searchField, JCheckBox caseSensitiveCheckBox, JCheckBox regexCheckBox) {
+		this(searchField, caseSensitiveCheckBox, regexCheckBox, null);
 	}
 	
-	public SearchListener(JTextField searchField, JCheckBox regexCheckBox, Dialog dialog) {
+	public SearchListener(JTextField searchField, JCheckBox caseSensitiveCheckBox, JCheckBox regexCheckBox, Dialog dialog) {
 		_searchField = searchField;
+		_caseSensitiveCheckBox = caseSensitiveCheckBox;
 		_regexCheckBox = regexCheckBox;
 		_dialog = dialog;
 	}
@@ -51,9 +53,10 @@ public class SearchListener implements ActionListener {
 			_searcherThread.interrupt();
 		} else {
 			String searchKey = _searchField.getText();
+			boolean isCaseSensitive = _caseSensitiveCheckBox.isSelected();
 			boolean isRegex = _regexCheckBox.isSelected();
 			if(searchKey.length() > 0 && _searchable != null) {
-				_searcherThread = new TextSearcher(_searchable, searchKey, isRegex);
+				_searcherThread = new TextSearcher(_searchable, searchKey, isCaseSensitive, isRegex);
 				_searcherThread.start();
 				if(_dialog != null) {
 					_dialog.setVisible(false);;

@@ -1,6 +1,7 @@
 package com.ezcode.jsnmpwalker.panel;
 
 
+import java.util.Map;
 import java.util.TreeMap;
 
 import com.ezcode.jsnmpwalker.dialog.SearchDialog;
@@ -20,6 +21,14 @@ public interface Searchable {
 	public String getCurrentSearchKey();
 	
 	public void setCurrentSearchKey(String searchKey);
+	
+	public boolean isRegex();
+	
+	public void setRegex(boolean isRegex);
+	
+	public boolean isCaseSensitive();
+	
+	public void setCaseSensitivity(boolean isCaseSensitive);
 	
 	public String getSearchText();
 	

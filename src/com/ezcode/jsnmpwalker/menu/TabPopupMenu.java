@@ -51,18 +51,6 @@ public class TabPopupMenu extends JPopupMenu {
 	}
 	
 	public void buildMenu(int tabCount) {
-		JMenuItem close = new JMenuItem(CLOSE_ITEM);
-		close.addMouseListener(_mibTabListener);
-		this.add(close);
-		if(tabCount > 1) {
-			JMenuItem closeOthers = new JMenuItem(CLOSE_OTHERS_ITEM);
-			closeOthers.addMouseListener(_mibTabListener);
-			this.add(closeOthers);
-			JMenuItem closeAll = new JMenuItem(CLOSE_ALL_ITEM);
-			closeAll.addMouseListener(_mibTabListener);
-			this.add(closeAll);
-		}
-		this.addSeparator();
 		JMenuItem rename = new JMenuItem(RENAME_ITEM);
 		rename.addMouseListener(_mibTabListener);
 		this.add(rename);
@@ -77,6 +65,18 @@ public class TabPopupMenu extends JPopupMenu {
 			JMenuItem findPrev = new JMenuItem(FIND_PREVIOUS_ITEM);
 			findPrev.addMouseListener(_mibTabListener);
 			this.add(findPrev);
+		}
+		this.addSeparator();
+		JMenuItem close = new JMenuItem(CLOSE_ITEM);
+		close.addMouseListener(_mibTabListener);
+		this.add(close);
+		if(tabCount > 1) {
+			JMenuItem closeOthers = new JMenuItem(CLOSE_OTHERS_ITEM);
+			closeOthers.addMouseListener(_mibTabListener);
+			this.add(closeOthers);
+			JMenuItem closeAll = new JMenuItem(CLOSE_ALL_ITEM);
+			closeAll.addMouseListener(_mibTabListener);
+			this.add(closeAll);
 		}
 	}
 	

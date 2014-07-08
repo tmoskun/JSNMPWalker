@@ -19,22 +19,25 @@ public class TextSearcher extends Thread {
 
 	private Searchable _searchable;
 	private String _searchKey;
+	private boolean _isCaseSensitive;
 	private boolean _isRegex;
 	private TreeMap<Integer, Integer> _searchPositions;
 	private int _currentSearchPosition;
 	
 	
-	public TextSearcher(Searchable searchable, String searchKey, boolean isRegex) {
+	public TextSearcher(Searchable searchable, String searchKey, boolean isCaseSensitive, boolean isRegex) {
 		_searchable = searchable;
 		_searchKey = searchKey;
+		_isCaseSensitive = isCaseSensitive;
 		_isRegex = isRegex;
 		_searchPositions = searchable.getSearchPositions();
 		_currentSearchPosition = searchable.getCurrentSearchPosition();
 	}
 	
-	public TextSearcher(Searchable searchable, String searchKey, boolean isRegex, TreeMap<Integer, Integer> searchPositions, int currentSearchPosition) {
+	public TextSearcher(Searchable searchable, String searchKey,  boolean isCaseSensitive, boolean isRegex, TreeMap<Integer, Integer> searchPositions, int currentSearchPosition) {
 		_searchable = searchable;
 		_searchKey = searchKey;
+		_isCaseSensitive = isCaseSensitive;
 		_isRegex = isRegex;
 		_searchPositions = searchPositions;
 		_currentSearchPosition = currentSearchPosition;
@@ -69,7 +72,9 @@ public class TextSearcher extends Thread {
 			}
 		});
 		String currentSearchKey = _searchable.getCurrentSearchKey();
-		if(_searchKey.equals(currentSearchKey)) {
+		boolean isCurrentCaseSensitive = _searchable.isCaseSensitive();
+		boolean isCurrentRegex = _searchable.isRegex();
+		if(_searchKey.equals(currentSearchKey) && _isCaseSensitive == isCurrentCaseSensitive && _isRegex == isCurrentRegex) {
 			//wrap around if it's finished
 			try {
 				_currentSearchPosition = _searchPositions.higherKey(_currentSearchPosition);
@@ -78,8 +83,15 @@ public class TextSearcher extends Thread {
 			}
 		} else {
 			_searchable.setCurrentSearchKey(_searchKey);
+			_searchable.setCaseSensitivity(_isCaseSensitive);
+			_searchable.setRegex(_isRegex);
 			String searchKeyAdjusted = _isRegex ? _searchKey : Pattern.quote(_searchKey);
-			Pattern patt = Pattern.compile(searchKeyAdjusted);
+			Pattern patt = null;
+			if(_isCaseSensitive) {
+				patt = Pattern.compile(searchKeyAdjusted);
+			} else {
+				patt = Pattern.compile(searchKeyAdjusted, Pattern.CASE_INSENSITIVE);
+			}
 			Matcher matt = patt.matcher(_searchable.getSearchText());
 			_searchPositions.clear();
 			while(matt.find()) {

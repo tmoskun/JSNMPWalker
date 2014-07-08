@@ -15,6 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
@@ -32,32 +33,39 @@ public class SearchDialog extends JDialog {
 	//private Searchable _searchable;
 	private JTextField _searchField;
 	private SearchListener _searchListener;
+	private JCheckBox _caseSensitiveCheckBox;
 	private JCheckBox _regexCheckBox;
 	private JButton _searchButton;
 	
-	public SearchDialog(Frame frame) {
+	public SearchDialog(Frame frame, String searchKey, boolean isCaseSensitive, boolean isRegex) {
 		super(frame, true);
 		this.setLayout(new BorderLayout());
 		//_searchable = searchable;
 		setTitle("Search");
 	    setSize(500, 150);
 		setLocationRelativeTo(frame);
-		init();
+		init(searchKey, isCaseSensitive, isRegex);
 	}
 	
-	private void init() {
-		final JPanel searchPane = new JPanel(new WrapLayout(FlowLayout.LEFT));
-		_searchField = new JTextField();
+	private void init(String searchKey, boolean isCaseSensitive, boolean isRegex) {
+		final JPanel searchPanel = new JPanel(new BorderLayout());
+		searchPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+		_searchField = new JTextField(searchKey);
 		_searchField.setPreferredSize(new Dimension(PanelUtils.FIELD_WIDTH, 20));
-		_regexCheckBox = new JCheckBox("Regex");
 		
-		_searchListener = new SearchListener(_searchField, _regexCheckBox, this);
+		JPanel optPanel = new JPanel(new WrapLayout(FlowLayout.LEFT));
+		_caseSensitiveCheckBox = new JCheckBox("Case Sensitive", isCaseSensitive);
+		_regexCheckBox = new JCheckBox("Regex", isRegex);
+		optPanel.add(_caseSensitiveCheckBox);
+		optPanel.add(_regexCheckBox);
+		
+		_searchListener = new SearchListener(_searchField, _caseSensitiveCheckBox, _regexCheckBox, this);
 		_searchField.addActionListener(_searchListener);
 		
-		searchPane.add(_searchField);
-		searchPane.add(_regexCheckBox);
+		searchPanel.add(_searchField, BorderLayout.NORTH);
+		searchPanel.add(optPanel, BorderLayout.CENTER);
 		
-		this.add(searchPane, BorderLayout.CENTER);
+		this.add(searchPanel, BorderLayout.CENTER);
 		
 		final JPanel buttonPane = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		_searchButton = new JButton(PanelUtils.TEXT_SEARCH);
