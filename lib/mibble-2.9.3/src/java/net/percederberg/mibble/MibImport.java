@@ -30,6 +30,7 @@ import java.util.Collection;
  * and a number of symbols in it.
  *
  * @author   Per Cederberg, <per at percederberg dot net>
+ * @author   T. Moskun (modifications)
  * @version  2.6
  * @since    2.6
  */
