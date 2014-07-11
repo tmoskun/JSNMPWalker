@@ -84,8 +84,8 @@ mibble-2.9.3
 Acknowlegements
 ---------------
 
-A number of improvements to JSNMPWalker have been suggested by Rich Brown from http://blueberryhillsoftware.com/, an co-founder of Dartware, LLC. and an author of InterMapper. 
+A number of improvements to JSNMPWalker have been suggested by Rich Brown from http://blueberryhillsoftware.com/, an co-founder of Dartware, LLC. 
 
 License
 -------
-GNU GPL, Version 3 license. Copyright 2012-2013 Z. Moskun zlatco@gmail.com, T. Moskun tanysmoskun@gmail.com.
+GNU GPL, Version 3 license. Copyright 2012-2013 ezcode zlatco@gmail.com, T. Moskun tanyamoskun@gmail.com.
