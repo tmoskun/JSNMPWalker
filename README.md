@@ -84,7 +84,7 @@ mibble-2.9.3
 Acknowlegements
 ---------------
 
-A number of improvements to JSNMPWalker have been suggested by Rich Brown from http://blueberryhillsoftware.com/, an co-founder of Dartware, LLC. 
+Many thanks to Rich Brown from http://blueberryhillsoftware.com/, a co-founder of Dartware LLC., who suggested a number of improvements to this project.  
 
 License
 -------
