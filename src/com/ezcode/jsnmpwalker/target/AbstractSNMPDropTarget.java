@@ -12,6 +12,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.io.IOException;
+import java.net.InetAddress;
 
 import com.ezcode.jsnmpwalker.data.SNMPDeviceData;
 import com.ezcode.jsnmpwalker.data.TransferableTreeData;
@@ -56,15 +57,13 @@ public abstract class AbstractSNMPDropTarget extends DropTarget {
 		}
 	}
 	
-	final static protected Object getObject(String data, int nodeType) {
-		if(data != null) {
-			if(nodeType == SNMPTreePanel.IP_NODE) {
-				return new SNMPDeviceData(data);
-			} else if(nodeType == SNMPTreePanel.OID_NODE) {
-				return data;
-			}
+	final static protected Object getObject(Object obj, int nodeType) {
+		if(obj != null) {
+			if(obj instanceof InetAddress) {
+				return new SNMPDeviceData(PanelUtils.formatData(obj));
+			} 
 		}
-		return null;
+		return obj;
 	}
 
 }
