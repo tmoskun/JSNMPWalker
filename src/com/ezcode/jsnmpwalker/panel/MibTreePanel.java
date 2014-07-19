@@ -60,6 +60,7 @@ import net.percederberg.mibble.browser.MibTreeBuilder;
 import net.percederberg.mibble.value.ObjectIdentifierValue;
 
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
+import com.ezcode.jsnmpwalker.listener.FieldPopupListener;
 import com.ezcode.jsnmpwalker.listener.MibDragGestureListener;
 import com.ezcode.jsnmpwalker.menu.MibPopupMenu;
 import com.ezcode.jsnmpwalker.menu.SNMPPopupMenu;

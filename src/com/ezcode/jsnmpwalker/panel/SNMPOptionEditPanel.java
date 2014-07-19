@@ -88,7 +88,7 @@ public class SNMPOptionEditPanel extends JPanel {
 	
 	private JPanel getGeneralPanel() {
 		JPanel panel = new JPanel(new SpringLayout());
-		final SNMPCommunityPanel commPanel = new SNMPCommunityPanel(_optionModel);
+		final SNMPCommunityPanel commPanel = new SNMPCommunityPanel(_optionModel, _treePanel.getFieldPopupListener());
 		panel.add(commPanel);
 		panel.add(new SNMPVersionPanel(_optionModel, new ActionListener() {
 
@@ -110,7 +110,7 @@ public class SNMPOptionEditPanel extends JPanel {
 	}
 	
 	private JPanel getSecurityPanel() {
-		return new SNMPSecurityPanel(_optionModel);
+		return new SNMPSecurityPanel(_optionModel, _treePanel.getFieldPopupListener());
 	}
 	
 	private void showSecurityTab(String version) {

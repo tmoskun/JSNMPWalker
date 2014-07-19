@@ -106,7 +106,7 @@ public class TextSearcher extends Thread {
 				}
 			});
 		} else {
-			JOptionPane.showMessageDialog(null, "No search results found");
+			JOptionPane.showMessageDialog(null, "No search results found for '"+ _searchKey + "'");
 		}
 	}
 	

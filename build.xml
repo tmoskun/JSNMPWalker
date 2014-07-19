@@ -117,31 +117,5 @@ build.date = ${build.printdate}
     	   includeantruntime="false"/>
   </target>
 	
-	
-  <taskdef name="bundleapp"
-	       classname="com.oracle.appbundler.AppBundlerTask"   
-	       classpath="lib/appbundler/appbundler-1.0.jar" />
-
-  <target name="bundle-JSNMPWalker">
-	       <bundleapp outputdirectory="dist"
-	            name="${build.title}"
-	            displayname="${build.title}"
-	            identifier="${build.java.package}.${build.title}"
-	            mainclassname="${build.java.package}.JSNMPWalker">
-	            <classpath file="${build.title}-${build.version}.jar" />
-	        </bundleapp>
-  </target>
-	
-  <taskdef name="jarbundler" 
-		    classname="net.sourceforge.jarbundler.JarBundler" 
-            classpath="lib/jarbundler/${jarbundler.jar}"/>
-		
-  <target name="jarbundle-JSNMPWalker">
-	  <jarbundler dir="dist"
-			    name="${build.title}"
-			    mainclass="${build.java.package}.JSNMPWalker" 
-			    jar="${build.title}-${build.version}.jar" />
-  </target>
-
 
 </project>

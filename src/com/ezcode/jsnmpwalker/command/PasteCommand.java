@@ -17,6 +17,7 @@ import javax.swing.tree.TreePath;
 
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
+import com.ezcode.jsnmpwalker.utils.ClipboardUtils;
 
 public class PasteCommand extends TreeCommand {
 	private Map<TreePath, Object> _pathMap;
@@ -38,7 +39,7 @@ public class PasteCommand extends TreeCommand {
 	public PasteCommand(SNMPTreePanel panel, TreePath[] paths, Object[] copyData) {
 		super(panel);
 		if(copyData == null) {
-			 Object obj = _panel.getClipboardContents();
+			 Object obj = ClipboardUtils.getClipboardContents();
 			 if(obj != null) {
 				 if(obj instanceof List) {
 					 _copyData = ((List) obj).toArray();

@@ -20,7 +20,7 @@ import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
 import com.ezcode.jsnmpwalker.data.TransferableOid;
-import com.ezcode.jsnmpwalker.target.TreeDropTarget;
+import com.ezcode.jsnmpwalker.utils.PanelUtils;
 
 import net.percederberg.mibble.browser.MibNode;
 import net.percederberg.mibble.value.ObjectIdentifierValue;
@@ -73,7 +73,7 @@ public class MibDragGestureListener implements DragGestureListener {
 		} else {
 			collectOids(oids, paths);
 		}
-		event.startDrag(cursor, new TransferableOid(oids, TreeDropTarget.MIB_DATA_FLAVOR));	
+		event.startDrag(cursor, new TransferableOid(oids, PanelUtils.MIB_DATA_FLAVOR));	
 	}
 
 }

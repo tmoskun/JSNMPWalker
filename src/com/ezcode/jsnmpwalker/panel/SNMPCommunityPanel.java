@@ -6,30 +6,24 @@ package com.ezcode.jsnmpwalker.panel;
  * This Software is distributed under GPLv3 license
  */
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
+import java.awt.Dimension;
 import java.util.List;
 
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
-import javax.swing.text.JTextComponent;
 
 import com.ezcode.jsnmpwalker.data.SNMPOptionModel;
 import com.ezcode.jsnmpwalker.data.SNMPTreeData;
 import com.ezcode.jsnmpwalker.layout.SpringUtilities;
+import com.ezcode.jsnmpwalker.listener.FieldListener;
+import com.ezcode.jsnmpwalker.listener.FieldPopupListener;
 import com.ezcode.jsnmpwalker.listener.OptionFieldListener;
-import com.ezcode.jsnmpwalker.listener.SNMPRadioButtonListener;
+import com.ezcode.jsnmpwalker.target.FieldDropTarget;
 import com.ezcode.jsnmpwalker.utils.PanelUtils;
 
 public class SNMPCommunityPanel extends JPanel {
@@ -39,42 +33,46 @@ public class SNMPCommunityPanel extends JPanel {
 	private JTextArea _oidArea = null;
 	private JTextField _community;
 	private SNMPOptionModel _optionModel;
+	private FieldPopupListener _fieldPopupListener;
 	
-	public SNMPCommunityPanel() {
-		_optionModel = new SNMPOptionModel();
-		init();
+	public SNMPCommunityPanel(FieldPopupListener fieldPopupListener) {
+		this(new SNMPOptionModel(), fieldPopupListener);
 	}
 	
-	public SNMPCommunityPanel(SNMPOptionModel optionModel) {
+	public SNMPCommunityPanel(SNMPOptionModel optionModel, FieldPopupListener fieldPopupListener) {
 		_optionModel = optionModel;
-		init();
+		_fieldPopupListener = fieldPopupListener;
+		init(true);
 	}
 	
-	public SNMPCommunityPanel(SNMPOptionModel optionModel, String command, String ip, List<String> oids) {
+	public SNMPCommunityPanel(SNMPOptionModel optionModel, String command, String ip, List<String> oids, FieldPopupListener fieldPopupListener, boolean editMethod) {
 		_optionModel = optionModel;
+		_fieldPopupListener = fieldPopupListener;
 		_methodCombo = new JComboBox(SNMPTreeData.METHODS);
 		_methodCombo.setSelectedItem(command);
 		_ipField = new JTextField(ip);
 		_ipField.setPreferredSize(PanelUtils.FIELD_DIM);
 		
 		_oidArea = new JTextArea();
-		for(String oid: oids) {
-			_oidArea.append(oid);
-			_oidArea.append("\n");
-		}
+		StringBuffer buff = new StringBuffer();
+		PanelUtils.appendWithLineBreak(buff, oids);
+		_oidArea.append(buff.toString().trim());
 		_oidArea.setBorder(PanelUtils.UI_DEFAULTS.getBorder("TextField.border"));
-		_oidArea.setPreferredSize(PanelUtils.AREA_DIM);
 		_oidArea.setToolTipText("Values separated by comma, semicolumn or new line");
 
-		init();
+		init(editMethod);
 	}
 	
-	public SNMPCommunityPanel(SNMPTreeData data) {
-		this((SNMPOptionModel) data.getOptionModel(), data.getCommand(), data.getIp(), data.getOids());
+	public SNMPCommunityPanel(SNMPOptionModel optionModel, String command, String ip, List<String> oids, FieldPopupListener fieldPopupListener) {
+		this(optionModel, command, ip, oids, fieldPopupListener, true);
+	}
+	
+	public SNMPCommunityPanel(SNMPTreeData data, FieldPopupListener fieldPopupListener) {
+		this((SNMPOptionModel) data.getOptionModel(), data.getCommand(), data.getIp(), data.getOids(), fieldPopupListener);
 	}
 	
 	
-	public void init() {
+	public void init(boolean editMethod) {
 		int rownum = 1;
 		setLayout(new SpringLayout());
 		setBorder(PanelUtils.DIALOG_BORDER);
@@ -85,6 +83,7 @@ public class SNMPCommunityPanel extends JPanel {
 			add(methLabel);
 			add(_methodCombo);
 			methLabel.setLabelFor(_methodCombo);
+			_methodCombo.setEnabled(editMethod);
 		}
 
 		if(_ipField != null) {
@@ -93,14 +92,21 @@ public class SNMPCommunityPanel extends JPanel {
 			add(ipLabel);
 			add(_ipField);
 			ipLabel.setLabelFor(_ipField);
+			_ipField.addMouseListener(new FieldListener(_ipField, _fieldPopupListener));
+			_ipField.setDropTarget(new FieldDropTarget(_ipField));
 		}
 		
 		if(_oidArea != null) {
 			rownum++;
 			final JLabel oidLabel = new JLabel("OID(s): ", JLabel.TRAILING);
 			add(oidLabel);
-			add(_oidArea);
+			_oidArea.setLineWrap(true);
+			JScrollPane sp = new JScrollPane(_oidArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			sp.setPreferredSize(PanelUtils.AREA_DIM);
+			add(sp);
 			oidLabel.setLabelFor(_oidArea);
+			_oidArea.addMouseListener(new FieldListener(_oidArea, _fieldPopupListener));
+			_oidArea.setDropTarget(new FieldDropTarget(_oidArea));
 		}
 		
 		final JLabel commLabel = new JLabel("Community: ", JLabel.TRAILING);
@@ -129,15 +135,14 @@ public class SNMPCommunityPanel extends JPanel {
 	}
 	
 	public String[] getOids() {
-		String oids = _oidArea.getText();
+		String oids = _oidArea.getText().trim();
 		if(oids == null || oids.length() == 0)
 			return new String[0];
-		return oids.split("[,;\n]");
+		return oids.split("[,;\\s]+");
 	}
 	
 	public void showCommunity(String version) {
 		_community.setEnabled(!version.equalsIgnoreCase(SNMPOptionModel.SNMP_VERSION_3));
 	}
 	
-
 }

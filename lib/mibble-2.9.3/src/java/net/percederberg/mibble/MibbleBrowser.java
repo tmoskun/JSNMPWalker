@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
  *
- * Copyright (c) 2004-2009 Per Cederberg. All rights reserved.
+ * Copyright (c) 2004-2013 Per Cederberg. All rights reserved.
  */
 
 package net.percederberg.mibble;
@@ -31,12 +31,13 @@ import javax.swing.UIManager;
 
 import net.percederberg.mibble.browser.BrowserFrame;
 import net.percederberg.mibble.browser.MibTreeBuilder;
+import net.percederberg.mibble.value.ObjectIdentifierValue;
 
 /**
  * A program for browsing MIB files in a GUI.
  *
  * @author   Per Cederberg, <per at percederberg dot net>
- * @version  2.9
+ * @version  2.10
  * @since    2.3
  */
 public class MibbleBrowser {
@@ -72,7 +73,7 @@ public class MibbleBrowser {
     /**
      * The MIB loader to use.
      */
-    private MibLoader loader = new MibLoader();
+    public MibLoader loader = new MibLoader();
 
     /**
      * The application main entry point.
@@ -96,9 +97,6 @@ public class MibbleBrowser {
      * @param args           the command-line arguments
      */
     public void start(String[] args) {
-        BrowserFrame  frame;
-        ArrayList     list;
-        String        str;
 
         // Check command-line arguments
         for (int i = 0; i < args.length; i++) {
@@ -118,19 +116,19 @@ public class MibbleBrowser {
 
         // Open browser frame
         try {
-            str = "com.apple.mrj.application.apple.menu.about.name";
+            String str = "com.apple.mrj.application.apple.menu.about.name";
             System.setProperty(str, buildInfo.getProperty("build.title"));
             str = UIManager.getSystemLookAndFeelClassName();
             UIManager.setLookAndFeel(str);
         } catch (Exception e) {
             printInternalError(e);
         }
-        frame = new BrowserFrame(this);
+        BrowserFrame frame = new BrowserFrame(this);
         frame.setVisible(true);
 
         // Load command-line & preference MIBs
         frame.setBlocked(true);
-        list = getFilePrefs();
+        ArrayList<String> list = getFilePrefs();
         for (int i = 0; i < args.length; i++) {
             list.add(args[i]);
         }
@@ -138,7 +136,10 @@ public class MibbleBrowser {
             frame.loadMib(list.get(i).toString());
         }
         if (list.size() <= 0) {
+            frame.loadMib("RFC1155-SMI");
             frame.loadMib("RFC1213-MIB");
+            frame.loadMib("SNMPv2-SMI");
+            frame.loadMib("SNMPv2-TC");
             frame.loadMib("HOST-RESOURCES-MIB");
         }
         frame.refreshTree();
@@ -201,10 +202,8 @@ public class MibbleBrowser {
      *             correctly
      */
     public void loadMib(String src) throws IOException, MibLoaderException {
-        MibTreeBuilder  mb = MibTreeBuilder.getInstance();
-        File            file = new File(src);
-        Mib             mib = null;
-
+        Mib mib = null;
+        File file = new File(src);
         if (file.exists()) {
             if (loader.getMib(file) != null) {
                 return;
@@ -214,11 +213,12 @@ public class MibbleBrowser {
                 loader.addDir(file.getParentFile());
             }
             mib = loader.load(file);
-            addFilePref(file);
+            addFilePref(file.getAbsolutePath());
         } else {
             mib = loader.load(src);
+            addFilePref(src);
         }
-        mb.addMib(mib);
+        MibTreeBuilder.getInstance().addMib(mib);
     }
 
     /**
@@ -227,10 +227,13 @@ public class MibbleBrowser {
      * @param name           the MIB name
      */
     public void unloadMib(String name) {
-        Mib  mib = loader.getMib(name);
-
+        Mib mib = loader.getMib(name);
         if (mib != null) {
-            removeFilePref(mib.getFile());
+            File file = mib.getFile();
+            removeFilePref(file.getAbsolutePath());
+            if (!file.exists()) {
+                removeFilePref(mib.getName());
+            }
             try {
                 loader.unload(name);
             } catch (MibLoaderException ignore) {
@@ -252,28 +255,47 @@ public class MibbleBrowser {
     }
 
     /**
-     * Adds a specified MIB file preference.
+     * Searches the OID tree from the loaded MIB files for the best
+     * matching value. The returned OID symbol will have the longest
+     * matching OID value, but doesn't have to be an exact match. The
+     * search requires the full numeric OID value (from the root).
      *
-     * @param file           the MIB file to add
+     * @param oid            the numeric OID string to search for
+     *
+     * @return the best matching OID symbol, or
+     *         null if no partial match was found
+     *
+     * @see MibLoader#getOid(String)
+     * @since 2.10
      */
-    private void addFilePref(File file) {
-        ArrayList  list = getFilePrefs();
+    public MibValueSymbol findMibSymbol(String oid) {
+        ObjectIdentifierValue match = loader.getOid(oid);
+        return (match == null) ? null : match.getSymbol();
+    }
 
-        if (!list.contains(file.getAbsolutePath())) {
-            prefs.put("file" + list.size(), file.getAbsolutePath());
+    /**
+     * Adds a specified MIB file preference. The file may be either a built-in
+     * MIB name or an absolute MIB file path.
+     *
+     * @param file           the MIB file or name to add
+     */
+    private void addFilePref(String file) {
+        ArrayList<String> list = getFilePrefs();
+        if (!list.contains(file)) {
+            prefs.put("file" + list.size(), file);
         }
     }
 
     /**
-     * Removes a specified MIB file preference.
+     * Removes a specified MIB file preference. The file may be either a
+     * built-in MIB name or an absolute MIB file path.
      *
-     * @param file           the MIB file to remove
+     * @param file           the MIB file or name to remove
      */
-    private void removeFilePref(File file) {
-        ArrayList  list = getFilePrefs();
-
+    private void removeFilePref(String file) {
+        ArrayList<String> list = getFilePrefs();
         removeFilePrefs();
-        list.remove(file.getAbsolutePath());
+        list.remove(file);
         for (int i = 0; i < list.size(); i++) {
             prefs.put("file" + i, list.get(i).toString());
         }
@@ -284,9 +306,8 @@ public class MibbleBrowser {
      *
      * @return the list of MIB files to load
      */
-    private ArrayList getFilePrefs() {
-        ArrayList  list = new ArrayList();
-
+    private ArrayList<String> getFilePrefs() {
+        ArrayList<String> list = new ArrayList<String>();
         for (int i = 0; i < 1000; i++) {
             String str = prefs.get("file" + i, null);
             if (str != null) {

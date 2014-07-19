@@ -13,8 +13,8 @@ import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -26,20 +26,13 @@ import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
-import net.percederberg.mibble.value.ObjectIdentifierValue;
-
-import com.ezcode.jsnmpwalker.SNMPSessionFrame;
+import com.ezcode.jsnmpwalker.data.SNMPDeviceData;
 import com.ezcode.jsnmpwalker.data.TransferableTreeData;
 import com.ezcode.jsnmpwalker.dialog.CommandDialog;
 import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
+import com.ezcode.jsnmpwalker.utils.PanelUtils;
 
-public class TreeDropTarget extends DropTarget {
-	
-	public static final DataFlavor MIB_DATA_FLAVOR = new DataFlavor(ObjectIdentifierValue.class,
-			ObjectIdentifierValue.class.getSimpleName());
-	
-	public static final DataFlavor DEVICE_DATA_FLAVOR = new DataFlavor(InetAddress.class,
-			InetAddress.class.getSimpleName());
+public class TreeDropTarget extends AbstractSNMPDropTarget {
 	
 	private SNMPTreePanel _panel;
 	private JTree _tree;
@@ -50,7 +43,7 @@ public class TreeDropTarget extends DropTarget {
 	}
 	
 	
-	private void collectIpNodes(List<TreePath> paths, TreePath path, int nodeType) {
+	private void collectNodes(List<TreePath> paths, TreePath path, int nodeType) {
 		DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
 		if(node.isLeaf() && path.getPathCount() < nodeType) {
 			return;
@@ -59,61 +52,52 @@ public class TreeDropTarget extends DropTarget {
 		} else {
 			Enumeration children = node.children();
 			while(children.hasMoreElements()) {
-				collectIpNodes(paths, path.pathByAddingChild(children.nextElement()), nodeType);
+				collectNodes(paths, path.pathByAddingChild(children.nextElement()), nodeType);
 			}
 		}
 	}
 	
-	private String formatData(Object item) {
-		if(item != null) {
-			if(item instanceof InetAddress) {
-				return ((InetAddress) item).getHostAddress();
-			} else {
-				return item.toString();
-			}
-		}
-		return "Undefined";
-	}
-	
-	
-	private void insertTransferData(DropTargetDropEvent evt, Object data, int nodeType) {
+	@Override
+	protected void insertTransferData(DropTargetDropEvent evt, Object data, int nodeType) {
         try {
 			evt.acceptDrop(DnDConstants.ACTION_COPY);
 			if(data != null && data.toString().length() > 0 && data instanceof List) {          		
             	List<Object> list = (List<Object>) data;
-                String[] item = new String[list.size()];
+                String[] items = new String[list.size()];
                 for(int i = 0; i < list.size(); i++) {
-                	item[i] = formatData(list.get(i));
+                	items[i] = PanelUtils.formatData(list.get(i));
                 }
 	            Point location = evt.getLocation();
 	    		TreePath path = _tree.getPathForLocation(location.x, location.y);
+	    		boolean found = false;
 	    		if(path != null) {
 		    		int level = path.getPathCount();
 		    		if(level == nodeType) {
+		    			found = true;
 		    			String[] options = {"Overwrite", "Add", "Cancel"};
 		    			int result = JOptionPane.showOptionDialog(null, "Would you like to overwrite the component or add a new one?", "Drag and Drop", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 		    			if(result == JOptionPane.YES_OPTION) {
-		    				_panel.pasteData(path, item);
+		    				_panel.pasteData(path, items);
 		    			} else if(result == JOptionPane.NO_OPTION) {
-		    				_panel.insertData(path.getParentPath(), item);
+		    				_panel.insertData(path.getParentPath(), items);
 		    			}
 		    		} else {
-		    			List<TreePath> paths = new ArrayList<TreePath>();
-		    			collectIpNodes(paths, path, nodeType - 1);
-		    			if(paths.size() > 0) {
-			    			TreePath[] patharr = new TreePath[paths.size()];
-			    			patharr = paths.toArray(patharr);
-			    			_panel.insertData(patharr, item);
-		    			} else {
-		    				if(nodeType == SNMPTreePanel.IP_NODE) {
-		    					JDialog dg = new CommandDialog((JFrame) SwingUtilities.getWindowAncestor(_panel), "Create Command", _panel, item[0]);
-		    					dg.setVisible(true);
-		    				} else if(nodeType == SNMPTreePanel.OID_NODE) {
-		    					JDialog dg = new CommandDialog((JFrame) SwingUtilities.getWindowAncestor(_panel), "Create Command", _panel, item);
-		    					dg.setVisible(true);
-		    				}
+		    			List<TreePath> otherPaths = new ArrayList<TreePath>();
+		    			collectNodes(otherPaths, path, nodeType - 1);
+		    			if(otherPaths.size() > 0) {
+		    				found = true;
+			    			TreePath[] patharr = new TreePath[otherPaths.size()];
+			    			patharr = otherPaths.toArray(patharr);
+			    			_panel.insertData(patharr, items);
 		    			}
 		    		}
+	    		} 
+	    		if(path == null || !found) {
+    				if(nodeType == SNMPTreePanel.IP_NODE) {
+    					_panel.openCommandDialog(items[0], nodeType);
+    				} else if(nodeType == SNMPTreePanel.OID_NODE) {
+    					_panel.openCommandDialog(items, nodeType);
+    				}
 	    		}
             }
 			return;
@@ -126,30 +110,5 @@ public class TreeDropTarget extends DropTarget {
         }
 	}
 	
-	@Override
-    public synchronized void drop(DropTargetDropEvent evt) {
-        Transferable transfer = evt.getTransferable();
-        try {
-	        if(transfer.isDataFlavorSupported(MIB_DATA_FLAVOR)) {
-	        	insertTransferData(evt, transfer.getTransferData(MIB_DATA_FLAVOR), SNMPTreePanel.OID_NODE);
-	        } else if(transfer.isDataFlavorSupported(DEVICE_DATA_FLAVOR)) {
-	        	insertTransferData(evt, transfer.getTransferData(DEVICE_DATA_FLAVOR), SNMPTreePanel.IP_NODE);
-	        } else if(transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-				Object data = transfer.getTransferData(DataFlavor.stringFlavor);
-				if(data instanceof TransferableTreeData) {
-			        TransferableTreeData treeData = (TransferableTreeData) data;
-			        insertTransferData(evt, treeData.getData(), treeData.getDataType());
-				}
-	        }
-        } catch (UnsupportedFlavorException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-
-
 
 }

@@ -25,6 +25,7 @@ import javax.swing.tree.TreePath;
 
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
+import com.ezcode.jsnmpwalker.utils.ClipboardUtils;
 
 public class AddCommand extends TreeCommand {
 	private Object[] _userData = null;
@@ -106,7 +107,7 @@ public class AddCommand extends TreeCommand {
 	
 	protected void setUserData(Object[] userData) {
 		if(userData == null) {
-			 Object obj = _panel.getClipboardContents();
+			 Object obj = ClipboardUtils.getClipboardContents();
 			 if(obj != null) {
 				 if(obj instanceof List) {
 					 _userData = ((List) obj).toArray();

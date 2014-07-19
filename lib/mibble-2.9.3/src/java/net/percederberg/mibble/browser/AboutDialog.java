@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
  *
- * Copyright (c) 2004-2009 Per Cederberg. All rights reserved.
+ * Copyright (c) 2004-2010 Per Cederberg. All rights reserved.
  */
 
 package net.percederberg.mibble.browser;
@@ -40,7 +40,7 @@ import javax.swing.JTextArea;
  * The MIB browser about dialog.
  *
  * @author   Per Cederberg, <per at percederberg dot net>
- * @version  2.5
+ * @version  2.10
  * @since    2.3
  */
 public class AboutDialog extends JDialog {
@@ -50,7 +50,8 @@ public class AboutDialog extends JDialog {
      */
     private static final String ACKNOWLEDGEMENTS =
         "Written by Watsh Rajneesh & Per Cederberg.\n" +
-        "Thanks to Charles F. Schatz for a similar effort.\n" +
+        "Thanks to Charles F. Schatz, and to Tex Clayton\n" +
+        "at Dartware LLC, for valuable additions.\n" +
         "This software uses the Westhawk SNMP Stack.\n" +
         "See http://snmp.westhawk.co.uk/ for info.";
 
@@ -58,7 +59,7 @@ public class AboutDialog extends JDialog {
      * The copyright text.
      */
     private static final String COPYRIGHT =
-        "(c) 2004-2009 Per Cederberg. All rights reserved.\n" +
+        "(c) 2004-2010 Per Cederberg. All rights reserved.\n" +
         "This program comes with ABSOLUTELY NO\n" +
         "WARRANTY; for details see the accompanying\n" +
         "license.";

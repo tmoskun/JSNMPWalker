@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
  *
- * Copyright (c) 2004-2007 Per Cederberg. All rights reserved.
+ * Copyright (c) 2004-2013 Per Cederberg. All rights reserved.
  */
 
 package net.percederberg.mibble;
@@ -61,15 +61,15 @@ import net.percederberg.mibble.type.Constraint;
  *    if (tag.getCategory() == MibTypeTag.UNIVERSAL) {
  *        // Set BER and DER identifier bits 8 &amp; 7 to 00
  *    } else if (tag.getCategory() == MibTypeTag.APPLICATION) {
- *        // Set BER and DER identifier bits 8 &amp; 7 to 01 
+ *        // Set BER and DER identifier bits 8 &amp; 7 to 01
  *    }
- *    ... 
+ *    ...
  *    if (!type.isPrimitive()) {
  *        // Set BER and DER constructed bit
  *    }</pre>
  *
  * @author   Per Cederberg, <per at percederberg dot net>
- * @version  2.9
+ * @version  2.10
  * @since    2.0
  */
 public abstract class MibType {
@@ -202,7 +202,7 @@ public abstract class MibType {
      *
      * @since 2.2
      */
-    public MibType createReference(ArrayList values)
+    public MibType createReference(ArrayList<?> values)
         throws UnsupportedOperationException {
 
         String msg = name + " type cannot be referenced with " +

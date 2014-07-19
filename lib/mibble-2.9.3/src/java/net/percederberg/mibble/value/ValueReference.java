@@ -162,11 +162,11 @@ public class ValueReference extends MibValue {
             sym = context.findSymbol(name, true);
             if (sym != null && log != null) {
                 message = "missing import for '" + name + "', using " +
-                          "definition from " + sym.getMib().getName();
+                          sym.getMib().getName();
                 log.addWarning(location, message);
             }
         }
-        return sym; 
+        return sym;
     }
 
     /**

@@ -9,6 +9,61 @@
 
     <list>
       <item>
+        <title>Added multiple UI improvements to MibbleBrowser</title>
+        <text>The MibbleBrowser application has been improved by adding a set
+        of patches and suggestions made by Dartware LLC. It now reloads the
+        set of open MIB files more reliably and offers a simplified standard
+        MIB loading. Many thanks to Richard E. Brown and Dartware LLC for
+        these improvements</text>
+      </item>
+
+      <item>
+        <title>Added OID search methods to MibLoader &amp; ObjectIdentifierValue</title>
+        <text>The <code>MibLoader</code> and <code>ObjectIdentifierValue</code>
+        classes have been improved with new <code>getOid()</code>,
+        <code>find()</code>, <code>findAncestor()</code>,
+        <code>findDescendant()</code> and <code>getParentValues()</code>
+        methods to simplify search and access to the loaded OID tree.
+        <ref issue="11" /></text>
+      </item>
+
+      <item>
+        <title>Added new access methods to MibLoader class</title>
+        <text>The <code>MibLoader</code> class has been improved with a
+        new <code>getMibs()</code> method for accessing a map of all loaded
+        MIB files. Thanks to Anshul Gupta for suggesting this.
+        <ref issue="9" /></text>
+      </item>
+
+      <item>
+        <title>Changed to Java 6 &amp; Generics</title>
+        <text>The whole library has been updated to Java 6, with added Java
+        Generics for all methods returning lists or collections. This change
+        should be fully backwards-compatible, but now requires a Java 6
+        environment to run. <ref issue="10" /></text>
+      </item>
+
+      <item>
+        <title>Updated bundled IANA and IETF MIB files</title>
+        <text>The IANA and IETF MIB files bundled with Mibble have been
+        updated to match those available in the <code>libsmi</code> project
+        source tree (as of 2013-10-04).</text>
+      </item>
+
+      <item>
+        <title>Fixed compareTo in ObjectIdentifierValue</title>
+        <text>The <code>ObjectIdentifierValue</code> class didn't use proper
+        numerical comparison of the numerical parts. This caused some
+        two-digit OID parts to appear previous to some single-digit ones.
+        <ref issue="13" /></text>
+      </item>
+    </list>
+
+
+    <h1>Version 2.9.3 (2011-12-08):</h1>
+
+    <list>
+      <item>
         <title>Fixed NPE issue for empty directories</title>
         <text>The <code>MibDirectoryCache</code> class didn't properly handle
         empty or invalid directories. This caused an NPE when attempting to
@@ -766,7 +821,7 @@
         <text>The ObjectIdentifierValue child ordering has been
         changed from undefined to numerical order. The new
         implementation is actually faster than the previous one, due
-        to more clever object comparison than previously used. 
+        to more clever object comparison than previously used.
         <ref bug="8090" /></text>
       </item>
 
@@ -787,7 +842,7 @@
         the MibblePrinter or MibbleValidator application, the
         directory wasn't correctly added to the MibLoader path. This
         has now been fixed, so MIB imports now works correctly even
-        for file names without a directory portion. 
+        for file names without a directory portion.
         <ref bug="6528" /></text>
       </item>
     </list>
@@ -802,7 +857,7 @@
         these may also be overridden by tags in the MIB files. New
         methods <code>isPrimitive()</code> and <code>getTag()</code>
         has been added to <code>MibType</code>. Thanks to Sudhir
-        Khurana for pointing this out. <ref bug="5001" /> &amp; 
+        Khurana for pointing this out. <ref bug="5001" /> &amp;
         <ref bug="5003" /></text>
       </item>
 

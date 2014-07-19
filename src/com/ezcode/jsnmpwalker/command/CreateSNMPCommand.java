@@ -9,6 +9,7 @@ package com.ezcode.jsnmpwalker.command;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -27,8 +28,8 @@ public class CreateSNMPCommand extends AddCommand {
 		DefaultMutableTreeNode root = (DefaultMutableTreeNode) _treeModel.getRoot();
 		TreePath path = new TreePath(root);
 		for(Object obj: userData) {
-			if(obj instanceof Object[]) {
-				Object[] obj1 = (Object[]) obj;
+			if(obj instanceof Collection) {
+				Collection<String> obj1 = (Collection) obj;
 				List nodes = new ArrayList();
 				for(Object obj2: obj1) {
 					addData(path, data, obj2, nodes);
@@ -42,8 +43,10 @@ public class CreateSNMPCommand extends AddCommand {
 	
 	
 	private void addData(TreePath path, List data, Object obj, List nodes) {
-		addData(path, data, obj,false, nodes);
-		saveNodes(path, nodes);
+		if(obj != null && obj.toString().length() > 0) {
+			addData(path, data, obj,false, nodes);
+			saveNodes(path, nodes);
+		}
 	}
 	
 	private TreePath addData(TreePath path, List data, Object obj) {
@@ -58,7 +61,7 @@ public class CreateSNMPCommand extends AddCommand {
 			if(extend) {
 				saveNode(path, node);
 				path = path.pathByAddingChild(node);
-			} else if(nodes != null){
+			} else if(nodes != null && !nodes.contains(node)){
 				nodes.add(node);
 			}
 		} else {

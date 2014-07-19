@@ -25,7 +25,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -66,6 +68,7 @@ import com.ezcode.jsnmpwalker.action.ButtonAction;
 import com.ezcode.jsnmpwalker.command.AddCommand;
 import com.ezcode.jsnmpwalker.command.CreateSNMPCommand;
 import com.ezcode.jsnmpwalker.command.CutCommand;
+import com.ezcode.jsnmpwalker.command.EditSNMPCommand;
 import com.ezcode.jsnmpwalker.command.InsertCommand;
 import com.ezcode.jsnmpwalker.command.PasteCommand;
 import com.ezcode.jsnmpwalker.command.RemoveCommand;
@@ -76,12 +79,19 @@ import com.ezcode.jsnmpwalker.data.SNMPTreeData;
 import com.ezcode.jsnmpwalker.data.TransferableSNMPDeviceData;
 import com.ezcode.jsnmpwalker.dialog.CommandDialog;
 import com.ezcode.jsnmpwalker.layout.WrapLayout;
+import com.ezcode.jsnmpwalker.listener.FieldPopupListener;
 import com.ezcode.jsnmpwalker.listener.TreeDragGestureListener;
 import com.ezcode.jsnmpwalker.menu.SNMPPopupMenu;
 import com.ezcode.jsnmpwalker.target.TreeDropTarget;
+import com.ezcode.jsnmpwalker.utils.ClipboardUtils;
 import com.ezcode.jsnmpwalker.utils.PanelUtils;
 
 public class SNMPTreePanel extends JPanel  implements ClipboardOwner {
+	public static final int OID_NODE = 4;
+	public static final int IP_NODE = 3;
+	public static final int COMMAND_NODE = 2;
+	public static final int ROOT = 1;
+	
 	private JFrame _frame;
 	private final JTabbedPane _snmpOptionPane = new JTabbedPane(JTabbedPane.TOP);
 	private MibTreePanel _mibPanel;
@@ -89,16 +99,16 @@ public class SNMPTreePanel extends JPanel  implements ClipboardOwner {
 	private DefaultTreeModel _treeModel;
 	private TreeCellEditor _cellEditor;
 	private TreeNodeCommandStack _commandStack;
-	public static final int OID_NODE = 4;
-	public static final int IP_NODE = 3;
-	public static final int COMMAND_NODE = 2;
-	public static final int ROOT = 1;
+	private FieldPopupListener _fieldPopupListener;
+	private JButton _addCommand;
+	private JButton _editCommand;
 	
 	public SNMPTreePanel(JFrame frame, MibTreePanel mibPanel, TreeNodeCommandStack commandStack) {
 		super(new BorderLayout());
 		_frame = frame;
 		_mibPanel = mibPanel;
 		_commandStack = commandStack;
+		_fieldPopupListener = new FieldPopupListener();
 		init();		
 	}
 	
@@ -153,7 +163,10 @@ public class SNMPTreePanel extends JPanel  implements ClipboardOwner {
 		treeDragSource.createDefaultDragGestureRecognizer(_tree,
 				DnDConstants.ACTION_COPY, new TreeDragGestureListener(_tree));
 		
-		_tree.setDropTarget(new TreeDropTarget(this));
+		
+		TreeDropTarget dropTarget = new TreeDropTarget(this);
+		_tree.setDropTarget(dropTarget);
+		this.setDropTarget(dropTarget);
 
 			
 		final TreeSelectionModel selmodel = _tree.getSelectionModel();
@@ -227,19 +240,28 @@ public class SNMPTreePanel extends JPanel  implements ClipboardOwner {
 			}
 		});
 		
-		//buttons to add commands
+		//button to add/edit commands
 		JPanel commandButtPane = new JPanel(new WrapLayout(FlowLayout.LEFT));
-		JButton addcommand = new JButton("Add Command");
-		addcommand.setMnemonic(KeyEvent.VK_A);
-		addcommand.addActionListener(new ActionListener() {
-
-			@Override
+		_addCommand = new JButton("Add Command");
+		_addCommand.setMnemonic(KeyEvent.VK_A);
+		_addCommand.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JDialog dg = new CommandDialog((JFrame) SwingUtilities.getWindowAncestor(SNMPTreePanel.this), "Create Command", SNMPTreePanel.this);
-				//dg.setLocationRelativeTo(null);
-				dg.setVisible(true);
+				openCommandDialog();
 			}
 			
+		});
+		
+		_editCommand = new JButton("Edit Command");
+		_editCommand.setMnemonic(KeyEvent.VK_E);
+		_editCommand.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				TreePath path = _tree.getSelectionPath();
+				if(path != null && (path.getPathCount() == IP_NODE || path.getPathCount() == OID_NODE)) {
+					openCommandDialog("Edit Command", path);
+				} else {
+					JOptionPane.showMessageDialog(null, "No command selected in the tree");
+				}
+			}
 		});
 		
 		/*
@@ -253,7 +275,8 @@ public class SNMPTreePanel extends JPanel  implements ClipboardOwner {
 			
 		});
 		*/
-		commandButtPane.add(addcommand);
+		commandButtPane.add(_addCommand);
+		commandButtPane.add(_editCommand);
 		//commandButtons.add(removecommand);
 		
 		bottomPane.add(commandButtPane, BorderLayout.NORTH);
@@ -263,8 +286,10 @@ public class SNMPTreePanel extends JPanel  implements ClipboardOwner {
 		this.add(bottomPane, BorderLayout.SOUTH);
 		
 		//set keystrokes for action buttons
-		addcommand.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0), "Add");
-		addcommand.getActionMap().put("Add", new ButtonAction(_frame, addcommand));
+		_addCommand.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0), "AddCommand");
+		_addCommand.getActionMap().put("AddCommand", new ButtonAction(_frame, _addCommand));
+		_editCommand.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_E, 0), "EditCommand");
+		_editCommand.getActionMap().put("EditCommand", new ButtonAction(_frame, _editCommand));
 		
 		this.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "SNMP Command Tree"));
 	}
@@ -293,6 +318,78 @@ public class SNMPTreePanel extends JPanel  implements ClipboardOwner {
 	public JTree getTree() {
 		return _tree;
 	}
+	
+	public FieldPopupListener getFieldPopupListener() {
+		return _fieldPopupListener;
+	}
+	
+	public void enableCommandButtons(boolean enabled) {
+		if(_addCommand != null)
+			_addCommand.setEnabled(enabled);
+		if(_editCommand != null)
+			_editCommand.setEnabled(enabled);
+	}
+	
+	public void openCommandDialog() {
+		openCommandDialog("Create Command", null);
+	}
+	
+	public void openCommandDialog(Object obj, int level) {
+		openCommandDialog("Create Command", obj, level, null);
+	}
+	
+	
+	public void openCommandDialog(String title, TreePath path) {
+		JDialog dg = null;
+		if(path != null) {
+			DefaultMutableTreeNode ipNode = null;
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+			if(path.getPathCount() == SNMPTreePanel.IP_NODE) {
+				ipNode = (DefaultMutableTreeNode) node;
+			} else if(path.getPathCount() == SNMPTreePanel.OID_NODE) {
+				path = path.getParentPath();
+				ipNode = (DefaultMutableTreeNode) node.getParent();
+			}
+			if(ipNode != null) {
+				ArrayList<String> oids = new ArrayList<String>();
+				Enumeration children = ipNode.children();
+				while(children.hasMoreElements()) {
+					DefaultMutableTreeNode child = (DefaultMutableTreeNode) children.nextElement();
+					oids.add((String) child.getUserObject());
+				}
+				DefaultMutableTreeNode commandNode = (DefaultMutableTreeNode) ipNode.getParent();
+				SNMPDeviceData ipData = (SNMPDeviceData) ipNode.getUserObject();
+				dg = new CommandDialog((JFrame) SwingUtilities.getWindowAncestor(this), title, this, (String) commandNode.getUserObject(), ipData.getIp(), oids, (SNMPOptionModel) ipData.getOptions(), path);
+			}
+		} else {
+			dg = new CommandDialog((JFrame) SwingUtilities.getWindowAncestor(this), title, this);
+		}
+		if(dg != null) {
+			dg.setVisible(true);
+		} else {
+			JOptionPane.showMessageDialog(this, "Data not provided");
+		}
+	}
+	
+	public void openCommandDialog(String title, Object obj, int level, TreePath path) {
+		if(obj != null) {
+			JDialog dg = null;
+			if(level == SNMPTreePanel.IP_NODE) {
+				if(obj instanceof String) {
+					dg = new CommandDialog((JFrame) SwingUtilities.getWindowAncestor(this), title, this, (String) obj);
+				} else if(obj instanceof SNMPDeviceData) {
+					dg = new CommandDialog((JFrame) SwingUtilities.getWindowAncestor(this), title, this, (SNMPDeviceData) obj, path);
+				}
+			} else if(level == SNMPTreePanel.OID_NODE && obj instanceof String[]) {
+				dg = new CommandDialog((JFrame) SwingUtilities.getWindowAncestor(this), title, this, (String[]) obj);
+			}
+			if(dg != null)
+				dg.setVisible(true);
+		} else {
+			openCommandDialog(title, path);
+		}
+	}
+	
 	
 	public void addNodes(Object obj) {
 		TreePath[] paths = _tree.getSelectionPaths();
@@ -361,7 +458,7 @@ public class SNMPTreePanel extends JPanel  implements ClipboardOwner {
 				list.add(obj);
 			}
 			if(!list.isEmpty()) {
-				setClipboardContents(list);
+				ClipboardUtils.setClipboardContents(this, list);
 			} 
 		}
 	}
@@ -375,7 +472,7 @@ public class SNMPTreePanel extends JPanel  implements ClipboardOwner {
 
 		}
 		if(!list.isEmpty()) {
-			setClipboardContents(list);
+			ClipboardUtils.setClipboardContents(this, list);
 		} 
 	}
 	
@@ -501,6 +598,11 @@ public class SNMPTreePanel extends JPanel  implements ClipboardOwner {
 		}
 	}
 	
+	public void editSNMP(TreePath path, Object ip, Collection<String> oids) {
+		TreeNodeCommandStack.Command editSNMP = new EditSNMPCommand(this, path, ip, oids);
+		_commandStack.add(editSNMP);
+	}
+	
 	
 	public void undo() {
 		_commandStack.undo();
@@ -514,6 +616,8 @@ public class SNMPTreePanel extends JPanel  implements ClipboardOwner {
 	public void lostOwnership(Clipboard clip, Transferable str) {
 		//do nothing
 	} 
+	
+/*
 	
 	public void setClipboardContents( Object obj ){
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -565,6 +669,7 @@ public class SNMPTreePanel extends JPanel  implements ClipboardOwner {
 		 }
 		 return result;
 	}
+*/
 	
 	private class SNMPTreeRenderer extends DefaultTreeCellRenderer {
 		

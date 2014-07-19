@@ -18,7 +18,7 @@ import java.util.List;
 import javax.swing.JTable;
 
 import com.ezcode.jsnmpwalker.data.TransferableIp;
-import com.ezcode.jsnmpwalker.target.TreeDropTarget;
+import com.ezcode.jsnmpwalker.utils.PanelUtils;
 
 public class NetworkDeviceDragGestureListener implements DragGestureListener {
 	
@@ -47,7 +47,7 @@ public class NetworkDeviceDragGestureListener implements DragGestureListener {
 			InetAddress address = (InetAddress) _deviceList.getValueAt(r, col);
 			addresses.add(address);
 		}
-		event.startDrag(cursor, new TransferableIp(addresses, TreeDropTarget.DEVICE_DATA_FLAVOR));
+		event.startDrag(cursor, new TransferableIp(addresses, PanelUtils.DEVICE_DATA_FLAVOR));
 	}
 
 }

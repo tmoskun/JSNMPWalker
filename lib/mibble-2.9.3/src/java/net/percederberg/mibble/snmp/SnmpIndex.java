@@ -93,7 +93,7 @@ public class SnmpIndex {
 
     /**
      * Checks if this index is an implied value. If this is true, the
-     * index also represents a value index. 
+     * index also represents a value index.
      *
      * @return true if the index is an implied value, or
      *         false otherwise
@@ -146,8 +146,7 @@ public class SnmpIndex {
      * @return a string representation of this object
      */
     public String toString() {
-        StringBuffer  buffer = new StringBuffer();
-
+        StringBuilder buffer = new StringBuilder();
         if (implied) {
             buffer.append("IMPLIED ");
         }

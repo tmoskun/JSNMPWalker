@@ -16,7 +16,7 @@ IANA-ITU-ALARM-TC-MIB DEFINITIONS ::= BEGIN
                         USA
 
             Tel:    +1  310-823-9358
-            E-Mail: iana&iana.org"
+            E-Mail: iana@iana.org"
         DESCRIPTION
             "The MIB module defines the ITU Alarm
             textual convention for objects expected to require
@@ -30,7 +30,7 @@ IANA-ITU-ALARM-TC-MIB DEFINITIONS ::= BEGIN
          REVISION    "200409090000Z"
          DESCRIPTION
              "Initial version, published as RFC 3877."
-        ::= { mib-2 119 } 
+        ::= { mib-2 119 }
 
 
    IANAItuProbableCause ::= TEXTUAL-CONVENTION

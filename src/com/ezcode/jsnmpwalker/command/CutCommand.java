@@ -9,6 +9,7 @@ import javax.swing.tree.TreePath;
 
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
+import com.ezcode.jsnmpwalker.utils.ClipboardUtils;
 
 public class CutCommand extends RemoveCommand {
 	//StringBuilder _savedClipboardData;
@@ -18,7 +19,7 @@ public class CutCommand extends RemoveCommand {
 		super(panel, paths);
 		//_savedClipboardData = new StringBuilder();
 		//_savedClipboardData.append(_panel.getClipboardContents());
-		_savedClipboardData = _panel.getClipboardContents();
+		_savedClipboardData = ClipboardUtils.getClipboardContents();
 	}
 	
 	@Override
@@ -31,7 +32,7 @@ public class CutCommand extends RemoveCommand {
 	public void undo() {
 		super.undo();
 		if(_savedClipboardData.toString().length() > 0)
-			_panel.setClipboardContents(_savedClipboardData);
+			ClipboardUtils.setClipboardContents(_panel, _savedClipboardData);
 	}
 	
 	

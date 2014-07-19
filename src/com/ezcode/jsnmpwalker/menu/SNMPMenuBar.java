@@ -189,9 +189,7 @@ public class SNMPMenuBar extends JMenuBar {
 		JMenuItem addcommand = new JMenuItem("Add Command", KeyEvent.VK_A);
 		addcommand.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JDialog dg = new CommandDialog(_frame, "Create Command", _treePane);
-				//dg.setLocationRelativeTo(null);
-				dg.setVisible(true);
+				_treePane.openCommandDialog();
 			}
 			
 		});

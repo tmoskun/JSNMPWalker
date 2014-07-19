@@ -8,6 +8,7 @@ package com.ezcode.jsnmpwalker.panel;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
@@ -18,6 +19,8 @@ import javax.swing.SpringLayout;
 
 import com.ezcode.jsnmpwalker.data.SNMPOptionModel;
 import com.ezcode.jsnmpwalker.layout.SpringUtilities;
+import com.ezcode.jsnmpwalker.listener.FieldListener;
+import com.ezcode.jsnmpwalker.listener.FieldPopupListener;
 import com.ezcode.jsnmpwalker.listener.OptionComboListener;
 import com.ezcode.jsnmpwalker.listener.OptionFieldListener;
 import com.ezcode.jsnmpwalker.utils.PanelUtils;
@@ -31,7 +34,7 @@ public class SNMPSecurityPanel extends JPanel {
 	final private JTextField _privPass;
 	final private JComboBox _privType;
 	
-	public SNMPSecurityPanel(SNMPOptionModel optionModel) {
+	public SNMPSecurityPanel(SNMPOptionModel optionModel, FieldPopupListener fieldPopupListener) {
 		_optionModel = optionModel;
 	
 		setLayout(new SpringLayout());
@@ -39,10 +42,11 @@ public class SNMPSecurityPanel extends JPanel {
 		
 		JLabel nameLabel = new JLabel("Security Name: ", JLabel.TRAILING);
 		add(nameLabel);
-		_name = new JTextField(_optionModel.get(SNMPOptionModel.SECURITY_NAME_KEY));
+		_name = new SecurityTextField(_optionModel.get(SNMPOptionModel.SECURITY_NAME_KEY));
 		_name.setPreferredSize(PanelUtils.FIELD_DIM);
 		add(_name);
 		nameLabel.setLabelFor(_name);
+		_name.addMouseListener(new FieldListener(_name, fieldPopupListener));
 		_name.getDocument().addDocumentListener(new OptionFieldListener(_optionModel, _name, SNMPOptionModel.SECURITY_NAME_KEY));
 		
 	    JLabel levelLabel = new JLabel("Security Level: ", JLabel.TRAILING);
@@ -60,10 +64,11 @@ public class SNMPSecurityPanel extends JPanel {
 	    
 	    JLabel authPassLabel = new JLabel("Authentication Passphrase: ", JLabel.TRAILING);
 	    add(authPassLabel);
-	    _authPass = new JTextField(_optionModel.get(SNMPOptionModel.AUTH_PASSPHRASE_KEY));
+	    _authPass = new SecurityTextField(_optionModel.get(SNMPOptionModel.AUTH_PASSPHRASE_KEY));
 	    _authPass.setPreferredSize(PanelUtils.FIELD_DIM);
 	    add(_authPass);
 	    authPassLabel.setLabelFor(_authPass);
+	    _authPass.addMouseListener(new FieldListener(_authPass, fieldPopupListener));
 	    _authPass.getDocument().addDocumentListener(new OptionFieldListener(_optionModel, _authPass, SNMPOptionModel.AUTH_PASSPHRASE_KEY));
 	
 	    JLabel authTypeLabel = new JLabel("Authentication Type: ", JLabel.TRAILING);
@@ -76,10 +81,11 @@ public class SNMPSecurityPanel extends JPanel {
 	
 	    JLabel privPassLabel = new JLabel("Privacy Passphrase: ", JLabel.TRAILING);
 	    add(privPassLabel);
-	    _privPass = new JTextField(_optionModel.get(SNMPOptionModel.PRIV_PASSPHRASE_KEY));
+	    _privPass = new SecurityTextField(_optionModel.get(SNMPOptionModel.PRIV_PASSPHRASE_KEY));
 	    _privPass.setPreferredSize(PanelUtils.FIELD_DIM);
 	    add(_privPass);
 	    privPassLabel.setLabelFor(_privPass);
+	    _privPass.addMouseListener(new FieldListener(_privPass, fieldPopupListener));
 	    _privPass.getDocument().addDocumentListener(new OptionFieldListener(_optionModel, _privPass, SNMPOptionModel.PRIV_PASSPHRASE_KEY));
 	    
 	    JLabel privTypeLabel = new JLabel("Privacy Type: ", JLabel.TRAILING);
@@ -116,6 +122,24 @@ public class SNMPSecurityPanel extends JPanel {
 			_authType.setEnabled(true);
 			_privPass.setEnabled(true);
 			_privType.setEnabled(true);
+		}
+	}
+	
+	private class SecurityTextField extends JTextField {
+		
+		public SecurityTextField(String str) {
+			super(str);
+		}
+		
+		@Override
+		public void setEnabled(boolean enabled) {
+			super.setEnabled(enabled);
+			MouseListener[] listeners = this.getListeners(MouseListener.class);
+			for(MouseListener lis: listeners) {
+				if(lis instanceof FieldListener) {
+					((FieldListener) lis).setActive(enabled);
+				}
+			}
 		}
 	}
 	
