@@ -63,9 +63,9 @@ public class TreeDropTarget extends AbstractSNMPDropTarget {
 			evt.acceptDrop(DnDConstants.ACTION_COPY);
 			if(data != null && data.toString().length() > 0 && data instanceof List) {          		
             	List<Object> list = (List<Object>) data;
-                String[] items = new String[list.size()];
+                Object[] items = new Object[list.size()];
                 for(int i = 0; i < list.size(); i++) {
-                	items[i] = PanelUtils.formatData(list.get(i));
+                	items[i] = getObject(PanelUtils.formatData(list.get(i)), nodeType);
                 }
 	            Point location = evt.getLocation();
 	    		TreePath path = _tree.getPathForLocation(location.x, location.y);

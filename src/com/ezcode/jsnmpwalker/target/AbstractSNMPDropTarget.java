@@ -55,5 +55,16 @@ public abstract class AbstractSNMPDropTarget extends DropTarget {
 			e.printStackTrace();
 		}
 	}
+	
+	final static protected Object getObject(String data, int nodeType) {
+		if(data != null) {
+			if(nodeType == SNMPTreePanel.IP_NODE) {
+				return new SNMPDeviceData(data);
+			} else if(nodeType == SNMPTreePanel.OID_NODE) {
+				return data;
+			}
+		}
+		return null;
+	}
 
 }

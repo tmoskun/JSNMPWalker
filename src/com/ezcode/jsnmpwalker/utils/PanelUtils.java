@@ -195,7 +195,7 @@ public class PanelUtils {
 				return item.toString();
 			}
 		}
-		return "Undefined";
+		return "";
 	}
 	
 
