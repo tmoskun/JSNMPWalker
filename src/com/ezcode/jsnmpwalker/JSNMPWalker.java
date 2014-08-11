@@ -33,6 +33,7 @@ import javax.swing.SwingWorker;
 import com.ezcode.jsnmpwalker.data.SNMPOptionModel;
 import com.ezcode.jsnmpwalker.data.SNMPTreeData;
 import com.ezcode.jsnmpwalker.formatter.SNMPFormatter;
+import com.ezcode.jsnmpwalker.panel.MibTreePanel;
 import com.ezcode.jsnmpwalker.publish.SNMPPublisher;
 import com.ezcode.jsnmpwalker.worker.NetworkScanner;
 import com.ezcode.jsnmpwalker.worker.SNMPSessionWorker;
@@ -92,6 +93,7 @@ public class JSNMPWalker extends SNMPSessionFrame {
         //refreshMibTree();
 	}
 	
+
 	@Override
 	public void scanNetwork(String ip, Integer mask, String netType, boolean usePing, int timeout) {
 		try {

@@ -1,7 +1,46 @@
 MIBBLE VERSION INFORMATION
 ==========================
 
-Version 2.9.3 (2013-09-16):
+Version 2.9.3 (2014-08-01):
+---------------------------
+
+    o Added multiple UI improvements to MibbleBrowser
+      The MibbleBrowser application has been improved by adding a set 
+      of patches and suggestions made by Dartware LLC. It now reloads 
+      the set of open MIB files more reliably and offers a simplified 
+      standard MIB loading. Many thanks to Richard E. Brown and 
+      Dartware LLC for these improvements
+
+    o Added OID search methods to MibLoader & ObjectIdentifierValue
+      The MibLoader and ObjectIdentifierValue classes have been 
+      improved with new getOid(), find(), findAncestor(), 
+      findDescendant() and getParentValues() methods to simplify 
+      search and access to the loaded OID tree. [Issue #11]
+
+    o Added new access methods to MibLoader class
+      The MibLoader class has been improved with a new getMibs() 
+      method for accessing a map of all loaded MIB files. Thanks to 
+      Anshul Gupta for suggesting this. [Issue #9]
+
+    o Changed to Java 6 & Generics
+      The whole library has been updated to Java 6, with added Java 
+      Generics for all methods returning lists or collections. This 
+      change should be fully backwards-compatible, but now requires a 
+      Java 6 environment to run. [Issue #10]
+
+    o Updated bundled IANA and IETF MIB files
+      The IANA and IETF MIB files bundled with Mibble have been 
+      updated to match those available in the libsmi project source 
+      tree (as of 2013-10-04).
+
+    o Fixed compareTo in ObjectIdentifierValue
+      The ObjectIdentifierValue class didn't use proper numerical 
+      comparison of the numerical parts. This caused some two-digit 
+      OID parts to appear previous to some single-digit ones. [Issue 
+      #13]
+
+
+Version 2.9.3 (2011-12-08):
 ---------------------------
 
     o Fixed NPE issue for empty directories
@@ -744,9 +783,9 @@ Version 1.0 (2002-08-14):
 
 _____________________________________________________________________
 
-Mibble 2.9.3 (2013-09-16). See http://www.mibble.org/ for more
+Mibble 2.9.3 (2014-08-01). See http://www.mibble.org/ for more
 information.
 
-Copyright (c) 2002-2013 Per Cederberg. Permission is granted to copy
+Copyright (c) 2002-2014 Per Cederberg. Permission is granted to copy
 this document verbatim in any medium, provided that this copyright
 notice is left intact.

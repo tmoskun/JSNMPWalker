@@ -32,7 +32,8 @@ import javax.swing.JTextField;
 import javax.swing.UIDefaults;
 import javax.swing.plaf.basic.BasicButtonUI;
 
-import com.ezcode.jsnmpwalker.menu.TabPopupMenu;
+import com.ezcode.jsnmpwalker.menu.AbstractMibViewPopupMenu;
+import com.ezcode.jsnmpwalker.menu.MibViewTabPopupMenu;
 import com.ezcode.jsnmpwalker.utils.PanelUtils;
 
 public class TabPanel extends JPanel {
@@ -61,9 +62,14 @@ public class TabPanel extends JPanel {
 		this(mibPanel, null);
 	}
 	
+	
 	public TabPanel(MibBrowserPanel mibPanel, String title) {
 		super(new FlowLayout(FlowLayout.LEFT));
 		_mibPanel = mibPanel;
+		init(title);
+	}
+	
+	private void init(String title) {
 		final JTabbedPane tp = _mibPanel.getTabbedPane();
 		String t = (title == null || title.length() == 0) ? "Untitled " + tp.getTabCount() : title;
 		_tabName = new JLabel(t);
@@ -77,27 +83,27 @@ public class TabPanel extends JPanel {
 			private void TabPopupEvent(MouseEvent event) {
 				int x = event.getX();
 				int y = event.getY();
-				
-	            Component comp = (Component) event.getSource();
-	            
-				TabPopupMenu popup = new TabPopupMenu(_mibPanel, TabPanel.this);
-				popup.buildMenu(tp.getTabCount());
+					
+		        Component comp = (Component) event.getSource();
+		            
+				MibViewTabPopupMenu popup = new MibViewTabPopupMenu(_mibPanel, TabPanel.this);
+				popup.buildMenu();
 				popup.show(comp, x, y);
 			}
-			
-			
+				
+				
 			public void mousePressed(MouseEvent e) {
 				if (e.isPopupTrigger()) {
 					TabPopupEvent(e);
 				} 
 			}
-			
+				
 			public void mouseReleased(MouseEvent e) {
 				if (e.isPopupTrigger()) {
 					TabPopupEvent(e);
 				} 
 			}
-			
+				
 			public void mouseClicked(MouseEvent e) {
 				if(e.getClickCount() == 1) {
 					int index = tp.indexOfTabComponent(TabPanel.this);
@@ -106,10 +112,11 @@ public class TabPanel extends JPanel {
 					editTitle();
 				}
 			}
-			
+				
 		});
 		setOpaque(false);
 	}
+	
 	
 	public void editTitle() {
 		String title = JOptionPane.showInputDialog(_mibPanel, "Tab title:", _tabName.getText());
@@ -121,6 +128,24 @@ public class TabPanel extends JPanel {
 	public void setTitle(String title) {
 		_tabName.setText(title);
 	}
+	
+	public String getTitle() {
+		return _tabName.getText();
+	}
+	
+	public JLabel getLabel() {
+		return _tabName;
+	}
+	
+/*
+	@Override
+	public boolean equals(Object obj) {
+		if(obj != null && obj instanceof TabPanel) {
+			return ((TabPanel) obj).getTitle().equals(getTitle());
+		}
+		return false;
+	}
+*/
 	
 	private class RemoveTabButton extends JButton implements ActionListener {
 		private Component _tabComponent;

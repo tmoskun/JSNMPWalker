@@ -16,7 +16,62 @@
     <h1>Mibble Version Information</h1>
 
 
-    <h2>Version 2.9.3 (2013-09-16):</h2>
+    <h2>Version 2.9.3 (2014-08-01):</h2>
+
+    <ul>
+      <li>
+        <strong>Added multiple UI improvements to MibbleBrowser</strong><br/>
+        The MibbleBrowser application has been improved by adding a set
+        of patches and suggestions made by Dartware LLC. It now reloads the
+        set of open MIB files more reliably and offers a simplified standard
+        MIB loading. Many thanks to Richard E. Brown and Dartware LLC for
+        these improvements
+      </li>
+
+      <li>
+        <strong>Added OID search methods to MibLoader &amp; ObjectIdentifierValue</strong><br/>
+        The <code>MibLoader</code> and <code>ObjectIdentifierValue</code>
+        classes have been improved with new <code>getOid()</code>,
+        <code>find()</code>, <code>findAncestor()</code>,
+        <code>findDescendant()</code> and <code>getParentValues()</code>
+        methods to simplify search and access to the loaded OID tree.
+        <a href="http://github.com/cederberg/mibble/issues/11">Issue #11</a>
+      </li>
+
+      <li>
+        <strong>Added new access methods to MibLoader class</strong><br/>
+        The <code>MibLoader</code> class has been improved with a
+        new <code>getMibs()</code> method for accessing a map of all loaded
+        MIB files. Thanks to Anshul Gupta for suggesting this.
+        <a href="http://github.com/cederberg/mibble/issues/9">Issue #9</a>
+      </li>
+
+      <li>
+        <strong>Changed to Java 6 &amp; Generics</strong><br/>
+        The whole library has been updated to Java 6, with added Java
+        Generics for all methods returning lists or collections. This change
+        should be fully backwards-compatible, but now requires a Java 6
+        environment to run. <a href="http://github.com/cederberg/mibble/issues/10">Issue #10</a>
+      </li>
+
+      <li>
+        <strong>Updated bundled IANA and IETF MIB files</strong><br/>
+        The IANA and IETF MIB files bundled with Mibble have been
+        updated to match those available in the <code>libsmi</code> project
+        source tree (as of 2013-10-04).
+      </li>
+
+      <li>
+        <strong>Fixed compareTo in ObjectIdentifierValue</strong><br/>
+        The <code>ObjectIdentifierValue</code> class didn't use proper
+        numerical comparison of the numerical parts. This caused some
+        two-digit OID parts to appear previous to some single-digit ones.
+        <a href="http://github.com/cederberg/mibble/issues/13">Issue #13</a>
+      </li>
+    </ul>
+
+
+    <h2>Version 2.9.3 (2011-12-08):</h2>
 
     <ul>
       <li>
@@ -777,7 +832,7 @@
         The ObjectIdentifierValue child ordering has been
         changed from undefined to numerical order. The new
         implementation is actually faster than the previous one, due
-        to more clever object comparison than previously used. 
+        to more clever object comparison than previously used.
         <a href="http://savannah.nongnu.org/bugs/index.php?func=detailitem&amp;item_id=8090">Bug #8090</a>
       </li>
 
@@ -798,7 +853,7 @@
         the MibblePrinter or MibbleValidator application, the
         directory wasn't correctly added to the MibLoader path. This
         has now been fixed, so MIB imports now works correctly even
-        for file names without a directory portion. 
+        for file names without a directory portion.
         <a href="http://savannah.nongnu.org/bugs/index.php?func=detailitem&amp;item_id=6528">Bug #6528</a>
       </li>
     </ul>
@@ -813,7 +868,7 @@
         these may also be overridden by tags in the MIB files. New
         methods <code>isPrimitive()</code> and <code>getTag()</code>
         has been added to <code>MibType</code>. Thanks to Sudhir
-        Khurana for pointing this out. <a href="http://savannah.nongnu.org/bugs/index.php?func=detailitem&amp;item_id=5001">Bug #5001</a> &amp; 
+        Khurana for pointing this out. <a href="http://savannah.nongnu.org/bugs/index.php?func=detailitem&amp;item_id=5001">Bug #5001</a> &amp;
         <a href="http://savannah.nongnu.org/bugs/index.php?func=detailitem&amp;item_id=5003">Bug #5003</a>
       </li>
 
@@ -1055,11 +1110,11 @@
   
     <hr/>
 
-    <p class="footer">Mibble 2.9.3 (2013-09-16). See the
+    <p class="footer">Mibble 2.9.3 (2014-08-01). See the
     <a href="http://www.mibble.org/">Mibble web site</a>
     for more information.</p>
 
-    <p class="footer">Copyright &copy; 2002-2013 Per Cederberg. Permission
+    <p class="footer">Copyright &copy; 2002-2014 Per Cederberg. Permission
     is granted to copy this document verbatim in any medium, provided
     that this copyright notice is left intact.</p>
 

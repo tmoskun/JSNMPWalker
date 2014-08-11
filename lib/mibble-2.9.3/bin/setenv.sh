@@ -72,8 +72,8 @@ if [[ ! -x "$MIBBLE_HOME/lib" ]] ; then
     echo "Error: $MIBBLE_HOME/lib does not exist"
     exit 1
 fi
-MIBBLE_PARSER_JAR=$MIBBLE_HOME/lib/mibble-parser-2.9.3.jar
-MIBBLE_MIBS_JAR=$MIBBLE_HOME/lib/mibble-mibs-2.9.3.jar
+MIBBLE_PARSER_JAR=$MIBBLE_HOME/lib/mibble-commercial-parser-2.9.3.jar
+MIBBLE_MIBS_JAR=$MIBBLE_HOME/lib/mibble-commercial-mibs-2.9.3.jar
 SNMP_JAR=$MIBBLE_HOME/lib/snmp6_0.jar
 CLASSPATH=$MIBBLE_PARSER_JAR:$MIBBLE_MIBS_JAR:$SNMP_JAR
 export CLASSPATH

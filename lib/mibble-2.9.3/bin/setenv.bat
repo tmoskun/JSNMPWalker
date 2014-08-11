@@ -29,7 +29,7 @@ if not exist "%JAVA_HOME%\bin\java.exe" goto ERROR
 ::Setup the classpath variable
 :FIXCP
 del reg1.txt 2> nul
-set CLASSPATH=lib\mibble-parser-2.9.3.jar;lib\mibble-mibs-2.9.3.jar;lib\snmp6_0.jar
+set CLASSPATH=lib\mibble-commercial-parser-2.9.3.jar;lib\mibble-commercial-mibs-2.9.3.jar;lib\snmp6_0.jar
 goto DONE
 
 :ERROR

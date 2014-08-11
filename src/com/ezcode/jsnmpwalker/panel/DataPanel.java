@@ -44,7 +44,7 @@ public class DataPanel extends JPanel {
 		dataLabel.setFont(labelFont);
 		this.add(dataLabel, BorderLayout.NORTH);
 		
-		_mibPane = new MibTreePanel(_loadingDataImg, (MibBrowserPanel) _frame.getMibBrowserPane(), (SNMPOutputPanel) _frame.getOutputPane());
+		_mibPane = MibTreePanel.getInstance(_loadingDataImg, (MibBrowserPanel) _frame.getMibBrowserPane());
 		_networkPane = new DevicePanel(_frame, _loadingDataImg);
 		
 		JSplitPane dataSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, _mibPane, _networkPane);

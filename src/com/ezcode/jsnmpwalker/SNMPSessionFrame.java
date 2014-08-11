@@ -144,7 +144,12 @@ public abstract class SNMPSessionFrame extends JFrame {
 		
 		//Data panel: MIBS and network devices
 		_dataPane = new DataPanel(this);
-		loadDefaultMibs();
+		List<String> prefList = ((MibTreePanel)_dataPane.getMibPanel()).getFilePrefs();
+		if(prefList.size() > 0) {
+			loadMibList(prefList);
+		} else {
+			loadDefaultMibs();
+		}
 		
 		//Tree to set up data: commands, ips and oids
 		_treePane = new SNMPTreePanel(this, (MibTreePanel) _dataPane.getMibPanel(), _commandStack);
@@ -432,6 +437,12 @@ public abstract class SNMPSessionFrame extends JFrame {
 		} catch (MibLoaderException e) {
             e.getLog().printTo(new PrintStream(System.out));
 		}
+	}
+	
+	public void loadMibList(List<String> list) {
+		MibTreePanel mibPanel = ((MibTreePanel) _dataPane.getMibPanel());
+        mibPanel.removeFilePrefs();
+        mibPanel.loadPrefMibs(list);
 	}
 	
 	public String getSaveConfigPath() {

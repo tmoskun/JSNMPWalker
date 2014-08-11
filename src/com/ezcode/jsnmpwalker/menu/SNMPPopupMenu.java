@@ -203,7 +203,12 @@ public class SNMPPopupMenu extends JPopupMenu {
 			} else if(command.startsWith(INSERT_ITEM)) {
 				_panel.insertData();
 			} else if(command.startsWith(TRANSLATE_FROM_ITEM)) {
-				_panel.translateData();
+				(new Thread() {
+					@Override
+					public void run() {
+						_panel.translateData();
+					}
+				}).start();
 			}
 		}
 			
