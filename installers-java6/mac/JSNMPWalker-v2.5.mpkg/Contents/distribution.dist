@@ -4,7 +4,7 @@
     <options customize="allow" allow-external-scripts="yes" rootVolumeOnly="true"/>
     <installation-check script="pm_install_check();"/>
     <script>function check_java() {
-	return system.run("checkjava.sh") >= 6;
+	return system.run("checkjava.sh") >= 7;
 }
 
 
@@ -12,8 +12,8 @@
 
 function pm_install_check() {
   if(!(check_java() == true)) {
-    my.result.title = 'Java 6 is not installed';
-    my.result.message = 'The application requires Java 6 or above. Please, install it.';
+    my.result.title = 'Java 7 is not installed';
+    my.result.message = 'The application requires Java 7 or above. Please, install it.';
     my.result.type = 'Fatal';
     return false;
   }
@@ -35,7 +35,7 @@ function pm_install_check() {
     <choice id="choice39" title="jsnmpwalker">
         <pkg-ref id="com.ezcode.jsnmpwalker.lib.pkg"/>
     </choice>
-    <pkg-ref id="com.ezcode.jsnmpwalker.app.pkg" installKBytes="5468" version="2.5" auth="Root">file:./Contents/Packages/jsnmpwalkerapp.pkg</pkg-ref>
+    <pkg-ref id="com.ezcode.jsnmpwalker.app.pkg" installKBytes="5480" version="2.5" auth="Root">file:./Contents/Packages/jsnmpwalkerapp.pkg</pkg-ref>
     <pkg-ref id="com.ezcode.jsnmpwalker.command.pkg" installKBytes="4" version="2.5" auth="Root">file:./Contents/Packages/jsnmpwalkercommand.pkg</pkg-ref>
     <pkg-ref id="com.ezcode.jsnmpwalker.lib.pkg" installKBytes="116" version="2.5" auth="Root">file:./Contents/Packages/jsnmpwalkerlib.pkg</pkg-ref>
 </installer-script>
