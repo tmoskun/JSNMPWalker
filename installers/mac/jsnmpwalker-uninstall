@@ -3,8 +3,6 @@
 echo "Removing the application..."
 prefix=$(which jsnmpwalker | sed 's|/bin/.*||')
 sudo rm -f $prefix/bin/jsnmpwalker
-sudo rm -rf $prefix/lib/jsnmpwalker
-
-echo "Removing the launcher..."
+sudo rm -rf /Library/JSNMPWalker
 sudo rm -rf /Applications/JSNMPWalker.app
 echo "The application is uninstalled"

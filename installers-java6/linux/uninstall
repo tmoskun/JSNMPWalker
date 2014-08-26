@@ -1,0 +1,22 @@
+#!/bin/sh
+
+echo "Removing the application..."
+prefix=$(which jsnmpwalker | sed 's|/bin/.*||')
+sudo rm -f $prefix/bin/jsnmpwalker
+sudo rm -rf $prefix/lib/jsnmpwalker
+
+echo "Removing shortcuts..."
+xdg-desktop-icon uninstall jsnmpwalker.desktop
+xdg-desktop-menu uninstall jsnmpwalker.desktop
+
+echo "Removing icons..."
+xdg-icon-resource uninstall --size 16 jsnmpwalker
+xdg-icon-resource uninstall --size 22 jsnmpwalker
+xdg-icon-resource uninstall --size 24 jsnmpwalker
+xdg-icon-resource uninstall --size 32 jsnmpwalker
+xdg-icon-resource uninstall --size 64 jsnmpwalker
+xdg-icon-resource uninstall --size 128 jsnmpwalker
+
+echo "Removing the launcher..."
+sudo rm "$prefix/share/applications/jsnmpwalker.desktop"
+echo "The application is uninstalled"
