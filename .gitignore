@@ -1,0 +1,16 @@
+classes
+/bin
+lib/commons-cli
+.settings
+.git
+/.project
+/.classpath
+/.externalToolBuilders
+/lib/mibble-2.9.3/.classpath
+/lib/mibble-2.9.3/.project
+/lib/mibble-2.9.3/MibbleBrowser.jar
+/lib/mibble-2.9.3/.externalToolBuilders
+/lib/jarbundler*
+/lib/appbundler*
+
+
