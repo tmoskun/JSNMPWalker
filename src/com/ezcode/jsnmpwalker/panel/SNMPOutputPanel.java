@@ -12,7 +12,11 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
@@ -31,6 +35,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -39,6 +44,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.Document;
+import javax.swing.text.Element;
 import javax.swing.text.Highlighter;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -54,6 +60,7 @@ public class SNMPOutputPanel extends JPanel {
 	private JFrame _frame;
 	private JTextField _logFileField;
 	private String _logFile = "";
+	private JButton _saveFile;
 	private AttributeSet _docAttributes;
 	private JTextWrapPane _logArea;
 	private String _currentSearchKey = "";
@@ -70,13 +77,9 @@ public class SNMPOutputPanel extends JPanel {
 	private final Highlighter.HighlightPainter _painter;
 	
 	public SNMPOutputPanel(JFrame frame) {
-		this(frame, "");
-	}
-	
-	public SNMPOutputPanel(JFrame frame, String logFile) {
+		//this(frame, "");
 		super(new BorderLayout());
 		_frame = frame;
-		_logFile = logFile;
 		_hilit = new DefaultHighlighter();
 		_painter = new DefaultHighlighter.DefaultHighlightPainter(PanelUtils.HILIT_COLOR);
 		_searchPositions = new TreeSet<Integer>();
@@ -92,49 +95,53 @@ public class SNMPOutputPanel extends JPanel {
 		init();
 	}
 	
+	
 	public void init() {
 		//Output panel
-		JPanel filePane = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		filePane.add(new JLabel("Output SNMP result to "));
-		_logFileField = new JTextField();
-		_logFileField.setPreferredSize(new Dimension(PanelUtils.FIELD_WIDTH, 20));
-		filePane.add(_logFileField);
-		JButton choosefile = new JButton("Directory/File");
-		final JFileChooser fc = new JFileChooser();
-		fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
-		fc.setFileFilter(new FileNameExtensionFilter("Text files", "txt"));
-		choosefile.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				int returnval = fc.showOpenDialog(null);
-				if(returnval == JFileChooser.APPROVE_OPTION) {
-					File file = fc.getSelectedFile();
-					_logFileField.setText(file.getAbsolutePath());
-				}		
-			}	
-		});
-		_logFileField.getDocument().addDocumentListener(new DocumentListener() {
-			private void setLogFile() {
-				_logFile = _logFileField.getText();
-			}
-			public void changedUpdate(DocumentEvent e) {
-				setLogFile();		
-			}
-			public void insertUpdate(DocumentEvent e) {
-				setLogFile();				
-			}
-			public void removeUpdate(DocumentEvent e) {
-				setLogFile();		
+		setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "SNMP Output")));
+		
+		//JPanel logPane = new JPanel(new BorderLayout());
+		StyleContext sc = StyleContext.getDefaultStyleContext();
+		_docAttributes = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.BLACK);
+		
+		/*
+		
+		JPanel filterPane = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		//filterPane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "Filter Data")));
+		filterPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		JLabel ipLabel = new JLabel("IP:");
+		JTextField ipFilter = new JTextField();
+		ipFilter.setPreferredSize(new Dimension(100, 20));
+		ipLabel.setLabelFor(ipFilter);
+		filterPane.add(ipLabel);
+		filterPane.add(ipFilter);
+		JLabel oidLabel = new JLabel("OID:");
+		JTextField oidFilter = new JTextField();
+		oidFilter.setPreferredSize(new Dimension(140, 20));
+		oidLabel.setLabelFor(oidFilter);
+		filterPane.add(oidLabel);
+		filterPane.add(oidFilter);
+		JLabel typeLabel = new JLabel("Data Type:");
+		JTextField typeFilter = new JTextField();
+		typeFilter.setPreferredSize(new Dimension(100, 20));
+		typeLabel.setLabelFor(typeFilter);
+		filterPane.add(typeLabel);
+		filterPane.add(typeFilter);
+		JButton filterButt = new JButton("Filter Data");
+		filterPane.add(filterButt);
+		
+		filterButt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				
 			}
 			
 		});
-		filePane.add(choosefile);
-		add(filePane, BorderLayout.NORTH);
-
-		JPanel logPane = new JPanel(new BorderLayout());
-		logPane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "SNMP Output")));
-		StyleContext sc = StyleContext.getDefaultStyleContext();
-		_docAttributes = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.BLACK);
+		
+		logPane.add(filterPane, BorderLayout.NORTH);
+		*/
+		
+		
 		JPanel searchPane = new JPanel(new WrapLayout(FlowLayout.LEFT));
 		_searchField = new JTextField();
 		_searchField.setPreferredSize(new Dimension(PanelUtils.FIELD_WIDTH, 20));
@@ -171,7 +178,10 @@ public class SNMPOutputPanel extends JPanel {
 		if(_loadingImg != null) {
 			searchPane.add(_loadingImg);
 		}
-		logPane.add(searchPane, BorderLayout.NORTH);
+		
+		//logPane.add(searchPane, BorderLayout.CENTER);
+		//add(logPane, BorderLayout.NORTH);
+		add(searchPane, BorderLayout.NORTH);
 		
 		JScrollPane logScrollPane = new JScrollPane();
 		StyledDocument logDoc = new DefaultStyledDocument();
@@ -180,32 +190,145 @@ public class SNMPOutputPanel extends JPanel {
 		_logArea.setHighlighter(_hilit);
 		_logArea.setSelectedTextColor(logDoc.getForeground(_docAttributes));
 		logScrollPane.getViewport().add(_logArea);
-		logPane.add(logScrollPane, BorderLayout.CENTER);
+		add(logScrollPane, BorderLayout.CENTER);
 		
-		JPanel logButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		_clearLogButton = new JButton("Clear output panel");
-		_clearLogButton.setMnemonic(KeyEvent.VK_C);
-		_clearLogButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				clearLog();	
-				resetSearch(false);
+		//JPanel logButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		//_clearLogButton = new JButton("Clear output panel");
+		//_clearLogButton.setMnemonic(KeyEvent.VK_C);
+		//_clearLogButton.addActionListener(new ActionListener() {
+		//	public void actionPerformed(ActionEvent e) {
+		//		clearLog();	
+		//		resetSearch(false);
+		//	}	
+		//});
+		
+		//_clearLogButton.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_C, 0), "Clear");
+		//_clearLogButton.getActionMap().put("Clear", new ButtonAction(_frame, _clearLogButton));
+		
+		//logButtons.add(_clearLogButton);
+		//logPane.add(logButtons, BorderLayout.SOUTH);
+		
+		//add(logPane, BorderLayout.CENTER);
+		
+		
+		JPanel filePane = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		filePane.add(new JLabel("Save Result in "));
+		_logFileField = new JTextField();
+		_logFileField.setPreferredSize(new Dimension(PanelUtils.FIELD_WIDTH, 20));
+		filePane.add(_logFileField);
+		JButton choosefile = new JButton("Directory/File");
+		final JFileChooser fc = new JFileChooser();
+		fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
+		fc.setFileFilter(new FileNameExtensionFilter("Text files", "txt"));
+		choosefile.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int returnval = fc.showOpenDialog(null);
+				if(returnval == JFileChooser.APPROVE_OPTION) {
+					File file = fc.getSelectedFile();
+					_logFileField.setText(file.getAbsolutePath());
+				}		
 			}	
 		});
-		_clearLogButton.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_C, 0), "Clear");
-		_clearLogButton.getActionMap().put("Clear", new ButtonAction(_frame, _clearLogButton));
-		logButtons.add(_clearLogButton);
-		logPane.add(logButtons, BorderLayout.SOUTH);
 		
-		add(logPane, BorderLayout.CENTER);
+		_logFileField.getDocument().addDocumentListener(new DocumentListener() {
+			private void setLogFile() {
+				_logFile = _logFileField.getText();
+			}
+			public void changedUpdate(DocumentEvent e) {
+				setLogFile();		
+			}
+			public void insertUpdate(DocumentEvent e) {
+				setLogFile();				
+			}
+			public void removeUpdate(DocumentEvent e) {
+				setLogFile();		
+			}
+			
+		});
 		
+		filePane.add(choosefile);
+		_saveFile = new JButton("Save");
+		
+		_saveFile.addActionListener(new ActionListener() {
+			private void saveData() {
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						toggleOutput(true);
+					}
+				});
+				Element root = _logArea.getDocument().getDefaultRootElement();
+				int lineCount = root.getElementCount();
+				if(lineCount <= 0) {
+					JOptionPane.showMessageDialog(null, "The log area is empty");
+					return;
+				} 
+				if(_logFile == null || _logFile.length() == 0) {
+					JOptionPane.showMessageDialog(null, "The file name is empty");
+				} else {
+					File log = new File(_logFile);
+					if(log.isDirectory()) {
+						int result = JOptionPane.showConfirmDialog(null, "The log file is a directory. Would you like to write log into " + _logFile + ".txt?", "Confirm file name", JOptionPane.OK_CANCEL_OPTION);
+						if(result != JOptionPane.OK_OPTION) 
+							return;
+					}
+					if(!log.getName().endsWith(".txt")) {
+						_logFile = log.getAbsolutePath() + ".txt";
+						log = new File(_logFile);
+					}
+					if(log.exists()) {
+						int result = JOptionPane.showConfirmDialog(null, "The file already exists, do you want to override it?", "Confirm override", JOptionPane.OK_CANCEL_OPTION);
+						if(result != JOptionPane.OK_OPTION) {
+							return;
+						} 
+					} 
+					try {
+						OutputStreamWriter fstream = new FileWriter(_logFile);
+						BufferedWriter writer = new BufferedWriter(fstream);
+						int start = 0;
+						int end = 0;
+						String str = "";
+						for(int i = 0; i < lineCount; i++) {
+							Element elem = root.getElement(i);
+							start = elem.getStartOffset();
+							end = elem.getEndOffset();
+							str = _logArea.getText(start, end-start);
+							writer.write(str);
+						}
+						writer.close();
+						JOptionPane.showMessageDialog(null, "Data saved");
+						SwingUtilities.invokeLater(new Runnable() {
+							public void run() {
+								toggleOutput(false);
+							}
+						});
+					} catch (IOException ex) {
+						System.out.println("Can't create output stream");
+						ex.printStackTrace();
+					} catch (BadLocationException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			}
+			
+			public void actionPerformed(ActionEvent e) {
+				new Runnable() {
+
+					@Override
+					public void run() {
+						saveData();
+					}
+					
+				}.run();
+			}
+			
+		});
+		filePane.add(_saveFile);
+		add(filePane, BorderLayout.SOUTH);
 	}
 	
-	public String getLogFile() {
-		return _logFile;
-	}
-	
-	
-	private void clearLog() {
+	public void clearLog() {
 		_logArea.setText("");
 	}
 		
@@ -252,11 +375,12 @@ public class SNMPOutputPanel extends JPanel {
 		} 
 	}
 	
-	public void toggleSNMPRun(boolean isrun) {
+	public void toggleOutput(boolean isrun) {
 		_loadingImg.setVisible(isrun);	
 		_logFileField.setEditable(!isrun);
 		_logFileField.setEnabled(!isrun);
-		_clearLogButton.setEnabled(!isrun);
+		_saveFile.setEnabled(!isrun);
+		//_clearLogButton.setEnabled(!isrun);
 	}
 	
 	private class SearchListener implements ActionListener {

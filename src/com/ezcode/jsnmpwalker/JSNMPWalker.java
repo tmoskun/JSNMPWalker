@@ -69,7 +69,6 @@ public class JSNMPWalker extends SNMPSessionFrame {
 	private Thread _snmpTerminationThread;
 	private Thread _netScanTerminationThread;
 	
-	private Writer _writer = null;
 	private boolean _debug = false;
 	private SNMPFormatter _formatter;
 
@@ -217,24 +216,12 @@ public class JSNMPWalker extends SNMPSessionFrame {
 		done(_netScanLatch, _netScanService, worker, _netScanTerminationThread);	
 	}
 
-	public void runSNMP(ArrayList<SNMPTreeData> treeData, String filename) {
-		closeWriter();
-		SNMPFormatter.restart();
+	public void runSNMP(ArrayList<SNMPTreeData> treeData) {
+		showOutput();
+		clearResults();
+		SNMPFormatter.resetTime();
 		String header = _formatter.writeHeader();
 		appendResult(header);
-		if (filename != null && filename.length() > 0) {
-			try {
-				// reset();
-				OutputStreamWriter fstream = new FileWriter(filename);
-				_writer = new BufferedWriter(fstream);
-				_writer.write(header);
-			} catch (IOException e) {
-				System.out.println("Can't create output stream");
-				e.printStackTrace();
-			}
-		} else {
-			_writer = null;
-		}
 		_snmpLatch = new CountDownLatch(treeData.size());
 		_snmpService = Executors.newFixedThreadPool(NUM_OF_THREADS);
 		_snmpTerminationThread = new TerminationThread(_snmpService, _snmpLatch, new Callable() {
@@ -245,7 +232,7 @@ public class JSNMPWalker extends SNMPSessionFrame {
 		});
 		_snmpWorkers.clear();
 		BlockingQueue snmpQueue = new LinkedBlockingQueue();
-		_snmpPublisher = new SNMPPublisher(this, snmpQueue, _writer);
+		_snmpPublisher = new SNMPPublisher(this, snmpQueue);
 		_snmpPublisher.start();
 		resetOutputSearch();
 		toggleSNMPRun(true);
@@ -259,24 +246,11 @@ public class JSNMPWalker extends SNMPSessionFrame {
 	public void stopSNMP() {
 		if(_snmpService != null) {
 			try {
-//				while(!_snmpWorkers.isEmpty()) {
-//					SwingWorker worker = _snmpWorkers.remove(0);
-//					worker.cancel(true);
-//				}
 				for(SwingWorker worker: _snmpWorkers) {
 					worker.cancel(true);
 				}
 				_snmpPublisher.interrupt();
 				List<Runnable> tasks = _snmpService.shutdownNow();
-/*
-				if (_writer != null) {
-					try {
-						_writer.close();
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
-				}
-*/
 			} catch (Exception e) {
 				JOptionPane.showMessageDialog(null, "Can't cancel the process", "Warning", JOptionPane.WARNING_MESSAGE);
 			}
@@ -297,17 +271,6 @@ public class JSNMPWalker extends SNMPSessionFrame {
 				terminationThread.start();
 			}
 		}
-	}
-	
-	@Override
-	public void closeWriter() {
-		if (_writer != null) {
-			try {
-				_writer.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}	
 	}
 	
 	private static boolean isUnix() {		 

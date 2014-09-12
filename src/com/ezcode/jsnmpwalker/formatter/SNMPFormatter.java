@@ -14,10 +14,10 @@ public class SNMPFormatter {
 	private static long _startTime;
 	
 	public SNMPFormatter() {
-		restart();
+		resetTime();
 	}
 	
-	public static void restart() {
+	public static void resetTime() {
 		_startTime = System.currentTimeMillis();
 	}
 	
@@ -44,7 +44,7 @@ public class SNMPFormatter {
 	}
 	
 	public String getHeader() {
-		return "\nTime\tSession\tType\tRequestId\tStatus\tSyntax\tOID\tValue";
+		return "Time\tSession\tType\tRequestId\tStatus\tSyntax\tOID\tValue";
 	}
 	
 	public static String pduToString(Address session, PDU pdu, long elapsedTime) {

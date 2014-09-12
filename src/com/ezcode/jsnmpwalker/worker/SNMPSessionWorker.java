@@ -148,12 +148,15 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 			    // otherwise a memory leak is created! Not canceling a request
 			    // immediately can be useful when sending a request to a broadcast
 			    // address.
-			    ((Snmp)event.getSource()).cancel(event.getRequest(), this);
-			    ++_responses;
+				 Object obj = event.getSource();
+				 if(obj instanceof Snmp) {
+				 	 ((Snmp)obj).cancel(event.getRequest(), this);
+				 }
+				 _responses++;
 
 			    PDU pdu = event.getResponse();
 			    //not reachable
-			    if(pdu == null) {
+			    if(!(obj instanceof Snmp) || pdu == null) {
 			    	_walkList.remove(event.getRequest().getRequestID());
 			    	return;
 			    }

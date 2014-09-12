@@ -9,34 +9,20 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.util.Enumeration;
 
-import javax.swing.Box;
-import javax.swing.ButtonGroup;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreeNode;
 
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 import com.ezcode.jsnmpwalker.command.TreeNodeCommandStack;
-import com.ezcode.jsnmpwalker.data.SNMPOptionModel;
-import com.ezcode.jsnmpwalker.dialog.CommandDialog;
 import com.ezcode.jsnmpwalker.listener.SNMPEditListener;
-import com.ezcode.jsnmpwalker.listener.SNMPRadioButtonListener;
-import com.ezcode.jsnmpwalker.panel.MibTreePanel;
 import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
 import com.ezcode.jsnmpwalker.storage.SNMPConfigurationStorage;
 
@@ -91,14 +77,10 @@ public class SNMPMenuBar extends JMenuBar {
 					if(file == null || file.getName().length() == 0)
 						return;
 					if(file.exists()) {
-						TreeNode root = (TreeNode) _treeModel.getRoot();
-						Enumeration children = root.children();
-						while(children.hasMoreElements()) {
-							MutableTreeNode node = (MutableTreeNode) children.nextElement();
-							_treeModel.removeNodeFromParent(node);
-						}
+						DefaultMutableTreeNode root = (DefaultMutableTreeNode) _treeModel.getRoot();
+						root.removeAllChildren();
+						_treeModel.reload();
 						if(_confStorage.readConfiguration(_treeModel, file.getAbsolutePath()))
-						//if(_confStorage.readConfiguration(_treeModel, _optionModel, file.getAbsolutePath()))
 							save.setEnabled(true);	
 						for (int i = 0; i < _tree.getRowCount(); i++) {
 					         _tree.expandRow(i);

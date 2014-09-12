@@ -67,6 +67,8 @@ public abstract class SNMPSessionFrame extends JFrame {
 
 	public static int WIDTH = 1800;
 	public static int HEIGHT = 1000;
+	
+	public static Dimension OUTPUT_PANEL_SIZE = new Dimension(300, 200);
 
 	private static final String[] FILTERS = {"Type", "Access", "Status", "Units", "Hint", "ModuleID", "Enums", "Indexes"};
 	private JTree _tree;
@@ -74,14 +76,12 @@ public abstract class SNMPSessionFrame extends JFrame {
 	private SNMPTreePanel _treePane;
 	private DataPanel _dataPane;
 	private MibBrowserPanel _mibBrowserPane;
+	private JSplitPane _rightSplitPane;
 	private SNMPOutputPanel _outputPane;
 	
 	private TreeNodeCommandStack _commandStack;
 	
 	//private Map<String, JTextField> _fields;
-	//private SNMPSessionOptionModel _optionModel;
-
-	//private String _logFile = "";
 	
 	private SNMPConfigurationStorage _confStorage;
 	
@@ -119,7 +119,6 @@ public abstract class SNMPSessionFrame extends JFrame {
 		} 
 		
 		//_fields = new Hashtable<String, JTextField>();
-		//_optionModel = new SNMPSessionOptionModel();
 	
 		_confStorage = new SNMPConfigurationStorage();
 		
@@ -172,55 +171,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 		JPanel southPane = new JPanel(new BorderLayout());
 		southPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 				
-		JPanel centerPane = new JPanel(new BorderLayout());
-		
-/*		
-		//Community and SNMP version fields
-		JPanel opts = new JPanel(new WrapLayout(FlowLayout.LEFT));
-		opts.add(new JLabel("Community"));
-		final JTextField community = new JTextField(_optionModel.get(SNMPSessionOptionModel.COMMUNITY_KEY));
-		community.setPreferredSize(new Dimension(120, 20));
-		opts.add(community);
-		community.getDocument().addDocumentListener(new DocumentListener() {
-			@Override
-			public void changedUpdate(DocumentEvent e) {
-				update();			
-			}
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-				update();			
-			}
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-				update();		
-			}
-			private void update() {
-				_optionModel.put(SNMPSessionOptionModel.COMMUNITY_KEY, community.getText());
-			}
-			
-		});
-		//opts.add(new JLabel("         "));
-		opts.add(Box.createHorizontalStrut(10));
-		opts.add(new JLabel("SNMP version"));
-		ButtonGroup vergroup = new ButtonGroup();
-		
-		String snmpverdefault = _optionModel.get(SNMPSessionOptionModel.SNMP_VERSION_KEY);
-		JRadioButton v1 = new JRadioButton("1", snmpverdefault.equals("1"));
-		JRadioButton v2c = new JRadioButton("2c", snmpverdefault.equals("2c"));
-		JRadioButton v3 = new JRadioButton("3", snmpverdefault.equals("3"));
-		SNMPRadioButtonListener verlist = new SNMPRadioButtonListener(_optionModel, SNMPSessionOptionModel.SNMP_VERSION_KEY);
-		v1.addActionListener(verlist);
-		v2c.addActionListener(verlist);
-		v3.addActionListener(verlist);
-		vergroup.add(v1);
-		vergroup.add(v2c);
-		vergroup.add(v3);	
-		opts.add(v1);
-		opts.add(v2c);
-		opts.add(v3);
-		
-		centerPane.add(opts, BorderLayout.NORTH);
-*/
+		JPanel centerPane = new JPanel(new BorderLayout());	
 		
 /*
 		//TODO: filters	
@@ -245,42 +196,13 @@ public abstract class SNMPSessionFrame extends JFrame {
 		_runSNMPButton.setMnemonic(KeyEvent.VK_R);
 		_runSNMPButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
-				String logFile = _outputPane.getLogFile();
-				//_treePane.getTree().cancelEditing();
+				_treePane.getTree().cancelEditing();
 				ArrayList<SNMPTreeData> treeData = getTreeData();
 				if(treeData.isEmpty()) {
 					JOptionPane.showMessageDialog(null, "Commands, IP or OID data are not provided", "Data not provided", JOptionPane.WARNING_MESSAGE);
 					return;
 				}
-				
-				if(logFile != null && logFile.length() > 0) {
-					File log = new File(logFile);
-					if(log.isDirectory()) {
-						int result = JOptionPane.showConfirmDialog(null, "The log file is a directory. Would you like to write log into " + logFile + ".txt?", "Confirm file name", JOptionPane.OK_CANCEL_OPTION);
-						if(result != JOptionPane.OK_OPTION) 
-							return;
-					}
-					if(!log.getName().endsWith(".txt")) {
-						logFile = log.getAbsolutePath() + ".txt";
-						log = new File(logFile);
-					}
-					if(log.exists()) {
-						int result = JOptionPane.showConfirmDialog(null, "The file already exists, do you want to override it?", "Confirm override", JOptionPane.OK_CANCEL_OPTION);
-						if(result != JOptionPane.OK_OPTION) {
-							return;
-						} 
-					} else {
-						try {
-							log.createNewFile();
-						} catch (IOException e) {
-							System.out.println("Can't create a file");
-							e.printStackTrace();
-						}
-					}
-				}
-				
-				//runSNMP(treeData, getOptionModel(), logFile);
-				runSNMP(treeData, logFile);
+				runSNMP(treeData);
 			}
 			
 		});
@@ -305,20 +227,22 @@ public abstract class SNMPSessionFrame extends JFrame {
 		leftPane.add(southPane, BorderLayout.SOUTH);
 				
 		//right panel
-		JSplitPane rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, _mibBrowserPane, _outputPane);
-		Dimension rightPanelMinSize = new Dimension(300, 200);
-		rightSplitPane.setOneTouchExpandable(true);
-		rightSplitPane.setDividerLocation(HEIGHT/2);
-		_mibBrowserPane.setMinimumSize(rightPanelMinSize);
-		_outputPane.setMinimumSize(rightPanelMinSize);
+		_rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, _mibBrowserPane, _outputPane);
+		//Dimension rightPanelMinSize = new Dimension(300, 200);
+		_rightSplitPane.setOneTouchExpandable(true);
+		//_rightSplitPane.setDividerLocation(HEIGHT/2);
+		_mibBrowserPane.setMinimumSize(OUTPUT_PANEL_SIZE);
+		_outputPane.setMinimumSize(OUTPUT_PANEL_SIZE);
 		
-		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPane, rightSplitPane);
+		_outputPane.setVisible(false);
+		
+		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPane, _rightSplitPane);
 		splitPane.setBorder(null);
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setDividerLocation(WIDTH/2);
 		Dimension panelMinSize = new Dimension(300, 800);
 		leftPane.setMinimumSize(panelMinSize);
-		rightSplitPane.setMinimumSize(panelMinSize);
+		_rightSplitPane.setMinimumSize(panelMinSize);
 		getContentPane().add(splitPane);
 		
 		//Menu Bar
@@ -338,14 +262,13 @@ public abstract class SNMPSessionFrame extends JFrame {
 			public void windowClosed(WindowEvent e) {
 				stopSNMP();
 			}
-		});
-
+		});	
 	}
 	
 	public void closeScanning() {
 		stopScanning();
 		stopSNMP();
-		closeWriter();
+		//closeWriter();
 	}
 	
 
@@ -469,11 +392,6 @@ public abstract class SNMPSessionFrame extends JFrame {
 		return path;
 	}
 
-/*
-	public SNMPSessionOptionModel getOptionModel() {
-		return _treePane.getOptionModel();
-	}
-*/
 	
 	public SNMPConfigurationStorage getConfStorage() {
 		return _confStorage;
@@ -592,15 +510,13 @@ public abstract class SNMPSessionFrame extends JFrame {
 	
 	public abstract void doneScan(SwingWorker worker);
 	
-	//public abstract void runSNMP(ArrayList<SNMPTreeData> treeData, SNMPSessionOptionModel model, String filename);
-	public abstract void runSNMP(ArrayList<SNMPTreeData> treeData, String filename);
+	public abstract void runSNMP(ArrayList<SNMPTreeData> treeData);
 	
 	//public abstract boolean stopSNMP();
 	public abstract void stopSNMP();
 	
 	public abstract void doneSNMP(SwingWorker worker);
 	
-	public abstract void closeWriter();
 	
 	public void toggleNetScan(boolean isrun) {
 		((DevicePanel)_dataPane.getNetworkPanel()).toggleNetScan(isrun);
@@ -617,7 +533,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 	}
 	
 	public void toggleSNMPRun(boolean isrun) {
-		_outputPane.toggleSNMPRun(isrun);
+		_outputPane.toggleOutput(isrun);
 		_runSNMPButton.setEnabled(!isrun);
 		_cancelSNMPButton.setEnabled(isrun);	
 	}
@@ -641,6 +557,19 @@ public abstract class SNMPSessionFrame extends JFrame {
 	
 	public void appendResult(String result) {
 		_outputPane.appendResult(result);
+	}
+	
+	public void showOutput() {
+		_outputPane.setVisible(true);
+		if(_outputPane.getSize().height == 0 || _outputPane.getSize().width == 0 ) {
+			_outputPane.setSize(OUTPUT_PANEL_SIZE);
+			_rightSplitPane.setDividerLocation(HEIGHT/2);
+			_rightSplitPane.repaint();
+		}
+	}
+	
+	public void clearResults() {
+		_outputPane.clearLog();
 	}
 
 	

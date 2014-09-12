@@ -5,23 +5,18 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 
+import javax.swing.SwingUtilities;
+
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
 
 public class SNMPPublisher extends Thread {
 	
 	private BlockingQueue<String> _queue;
 	private SNMPSessionFrame _frame;
-	private Writer _writer;
 	private ArrayList<String> _buffer;
 	
 	public SNMPPublisher(SNMPSessionFrame frame, BlockingQueue queue) {
-		this(frame, queue, null);
-	}
-	
-	
-	public SNMPPublisher(SNMPSessionFrame frame, BlockingQueue<String> queue, Writer w) {
 		_frame = frame;
-		_writer = w;
 		_queue = queue;
 		_buffer = new ArrayList<String>();
 	}
@@ -33,37 +28,16 @@ public class SNMPPublisher extends Thread {
 				_buffer.clear();
 				this.sleep(250);
 				_queue.drainTo(_buffer);
-				/*
-				for(String result: _buffer) {
-					if(!isInterrupted()) {
-						_frame.appendResult(result);
-						if(_writer != null) {
-							try {
-								_writer.write(result);
-								_writer.flush();
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-						}
-					}
-				}
-				*/
-				StringBuilder result = new StringBuilder();
+				final StringBuilder result = new StringBuilder();
 				for(String s: _buffer) {
 					result.append(s);
 				}
 				if(!isInterrupted()) {
-					_frame.appendResult(result.toString());
-					if(_writer != null) {
-						try {
-							_writer.write(result.toString());
-							_writer.flush();
-						} catch (IOException e) {
-							//ignore
-							//e.printStackTrace();
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							_frame.appendResult(result.toString());
 						}
-					}
+					});
 				}
 			} catch (InterruptedException e) {
 				//ignore
