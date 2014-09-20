@@ -7,22 +7,19 @@ package com.ezcode.jsnmpwalker.worker;
 
 
 import java.io.IOException;
-import java.io.Writer;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.SwingWorker;
 
 import org.snmp4j.AbstractTarget;
 import org.snmp4j.CommunityTarget;
 import org.snmp4j.PDU;
-import org.snmp4j.PDUv1;
 import org.snmp4j.ScopedPDU;
 import org.snmp4j.Snmp;
 import org.snmp4j.TransportMapping;
@@ -56,7 +53,8 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	private SNMPFormatter _formatter;
 //	private Writer _writer;
 	private SNMPSessionFrame _panel;
-	private BlockingQueue<String> _queue;
+	//private BlockingQueue<String> _queue;
+	private Queue _queue;
 	private SNMPTreeData _treeData;
 	private Map<String, String> _options;
 	
@@ -73,8 +71,8 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	private int _version;
 	
 	
-	public SNMPSessionWorker(SNMPSessionFrame panel, SNMPFormatter formatter, SNMPTreeData treeData, BlockingQueue<String> queue) {
-		
+	//public SNMPSessionWorker(SNMPSessionFrame panel, SNMPFormatter formatter, SNMPTreeData treeData, BlockingQueue<String> queue) {
+	public SNMPSessionWorker(SNMPSessionFrame panel, SNMPFormatter formatter, SNMPTreeData treeData, Queue<String> queue) {
 		_panel = panel;
 		_queue = queue;
 		_treeData = treeData;

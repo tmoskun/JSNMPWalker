@@ -11,6 +11,12 @@ import org.snmp4j.smi.Address;
 
 public class SNMPFormatter {
 	
+	public static int IP_COLUMN = 1;
+	public static int COMMAND_COLUMN = 2;
+	public static int REQID_COLUMN = 3;
+	public static int TYPE_COLUMN = 5;
+	public static int OID_COLUMN = 6;
+	
 	private static long _startTime;
 	
 	public SNMPFormatter() {
@@ -25,25 +31,25 @@ public class SNMPFormatter {
 		return System.currentTimeMillis()-_startTime;
 	}
 	
-	public String writeLine(String text) {
+	public static String writeLine(String text) {
 		return text+'\n';
 	}
 	
-	public String writePDU(Address session, PDU pdu)
+	public static String writePDU(Address session, PDU pdu)
 	{
 		return writeLine(pduToString(session,pdu, getElapsedTime()));
 	}
 	
-	public String writePDU(Address session, PDU pdu, long elapsedTime)
+	public static String writePDU(Address session, PDU pdu, long elapsedTime)
 	{
 		return writeLine(pduToString(session,pdu, elapsedTime));
 	}
 	
-	public String writeHeader() {
+	public static String writeHeader() {
 		return writeLine(getHeader());
 	}
 	
-	public String getHeader() {
+	public static String getHeader() {
 		return "Time\tSession\tType\tRequestId\tStatus\tSyntax\tOID\tValue";
 	}
 	

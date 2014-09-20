@@ -220,20 +220,22 @@ public class JSNMPWalker extends SNMPSessionFrame {
 		showOutput();
 		clearResults();
 		SNMPFormatter.resetTime();
-		String header = _formatter.writeHeader();
-		appendResult(header);
+		clearSavedContent();
+		appendResult(SNMPFormatter.writeHeader());
 		_snmpLatch = new CountDownLatch(treeData.size());
 		_snmpService = Executors.newFixedThreadPool(NUM_OF_THREADS);
+		BlockingQueue snmpQueue = new LinkedBlockingQueue();
+		_snmpPublisher = new SNMPPublisher(this, snmpQueue);
+		_snmpPublisher.start();
 		_snmpTerminationThread = new TerminationThread(_snmpService, _snmpLatch, new Callable() {
 			public Object call() {
+				_snmpPublisher.interrupt();
 				toggleSNMPRun(false);
+				processSavedContent();
 				return null;
 			}
 		});
 		_snmpWorkers.clear();
-		BlockingQueue snmpQueue = new LinkedBlockingQueue();
-		_snmpPublisher = new SNMPPublisher(this, snmpQueue);
-		_snmpPublisher.start();
 		resetOutputSearch();
 		toggleSNMPRun(true);
 		for (SNMPTreeData d : treeData) {
@@ -284,13 +286,13 @@ public class JSNMPWalker extends SNMPSessionFrame {
 	private class TerminationThread extends Thread {
 		private ExecutorService _service;
 		private CountDownLatch _latch;
-		private Callable _toggleUI;
+		private Callable _callback;
 		
-		protected TerminationThread(ExecutorService service, CountDownLatch latch, Callable toggleUI) {
+		protected TerminationThread(ExecutorService service, CountDownLatch latch, Callable callback) {
 			super();
 			_service = service;
 			_latch = latch;
-			_toggleUI = toggleUI;
+			_callback = callback;
 		}
 		
 		@Override
@@ -302,13 +304,13 @@ public class JSNMPWalker extends SNMPSessionFrame {
 			}
 			if (_latch.getCount() > 0)
 				JOptionPane.showMessageDialog(null,
-						"The SNMP run has been canceled");
+						"The process has been canceled");
 			else
 				JOptionPane.showMessageDialog(null,
 						"The process has finished");
 			//toggleRun(false);
 			try {
-				_toggleUI.call();
+				_callback.call();
 			} catch (Exception e) {}
 		}
 		

@@ -1,22 +1,21 @@
 package com.ezcode.jsnmpwalker.panel;
 
-import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.text.StyledDocument;
 
+/**
+ * Copyright(c) 2014 
+ * @author tmoskun
+ * This Software is distributed under GPLv3 license
+ */
+
 
 public class JTextWrapPane extends JTextPane {
-    
-    boolean _wrapState = true;
-    JTextArea j = new JTextArea();
+    private boolean _wrapState = true;
     
     /*
      * Constructor
      */
-    JTextWrapPane(boolean wrapState) {
-    	super();
-    	_wrapState = wrapState;
-    }
       
     public JTextWrapPane(StyledDocument log, boolean wrapState) {
     	super(log);
@@ -43,5 +42,5 @@ public class JTextWrapPane extends JTextPane {
     public boolean getLineWrap(boolean wrap) {
         return _wrapState;
     }
-} 
-
+    
+}

@@ -528,8 +528,16 @@ public abstract class SNMPSessionFrame extends JFrame {
 	}
 */
 	
+	public void clearSavedContent() {
+		_outputPane.clearSavedContent();
+	}
+	
 	public void resetOutputSearch() {
 		_outputPane.resetSearch(true);
+	}
+	
+	public void processSavedContent() {
+		_outputPane.processSavedContent();
 	}
 	
 	public void toggleSNMPRun(boolean isrun) {
@@ -540,6 +548,10 @@ public abstract class SNMPSessionFrame extends JFrame {
 	
 	public JPanel getOutputPane() {
 		return _outputPane;
+	}
+	
+	public List getSavedContent() {
+		return _outputPane.getSavedContent();
 	}
 	
 	public JPanel getMibBrowserPane() {
@@ -555,6 +567,7 @@ public abstract class SNMPSessionFrame extends JFrame {
 		return _outputPane.getResult();
 	}
 	
+
 	public void appendResult(String result) {
 		_outputPane.appendResult(result);
 	}
