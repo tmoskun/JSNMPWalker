@@ -24,6 +24,7 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
+import com.ezcode.jsnmpwalker.data.SNMPDeviceData;
 import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
 import com.ezcode.jsnmpwalker.utils.ClipboardUtils;
 
@@ -59,7 +60,8 @@ public class AddCommand extends TreeCommand {
 
 	public AddCommand(SNMPTreePanel panel, TreePath[] paths, Object[] userData) {
 		super(panel);
-		setUserData(userData);
+		//System.out.println("add " + (paths != null) + " " + (paths.length > 0) + " " + paths[0].getPathCount() + " " + SNMPTreePanel.IP_NODE);
+		setUserData(userData, (paths != null && paths.length > 0 && (paths[0].getPathCount() + 1) == SNMPTreePanel.IP_NODE));
 		_pathMap = new HashMap<TreePath, List<TreeNode>>();
 		for(TreePath path: paths) {
 			List<TreeNode> nodes = new ArrayList<TreeNode>();
@@ -106,13 +108,25 @@ public class AddCommand extends TreeCommand {
 	}
 	
 	protected void setUserData(Object[] userData) {
+		setUserData(userData, false);
+	}
+	
+	protected void setUserData(Object[] userData, boolean createObjects) {
 		if(userData == null) {
 			 Object obj = ClipboardUtils.getClipboardContents();
 			 if(obj != null) {
 				 if(obj instanceof List) {
 					 _userData = ((List) obj).toArray();
 				 } else if(obj instanceof String) {
-					 _userData = ((String) obj).split("\\r?\\n");
+					 if(createObjects) {
+						 String[] userDataStr = ((String) obj).split("\\r?\\n");
+						 _userData = new Object[userDataStr.length];
+						  for(int i = 0; i < userDataStr.length; i++) {
+							  _userData[i] = new SNMPDeviceData((String) userDataStr[i]);
+						  }
+					 } else {
+						 _userData = ((String) obj).split("\\r?\\n");
+					 }
 				 }
 			 }
 		} else {

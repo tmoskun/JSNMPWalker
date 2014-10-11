@@ -11,6 +11,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.Hashtable;
 import java.util.Map;
 
 public class SNMPDeviceData {
@@ -59,6 +60,7 @@ public class SNMPDeviceData {
 		_optionModel.put(key, value);
 	}
 	
+
 	public String toString() {
 		return _ip;
 	}

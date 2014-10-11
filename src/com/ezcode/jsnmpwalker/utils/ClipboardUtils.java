@@ -8,6 +8,7 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.ezcode.jsnmpwalker.data.SNMPDeviceData;
@@ -27,7 +28,7 @@ public class ClipboardUtils {
 			StringSelection stringSelection = new StringSelection( obj.toString() );
 			clipboard.setContents( stringSelection, owner );
 		} else if (obj instanceof SNMPDeviceData){
-			TransferableSNMPDeviceData dataSelection = new TransferableSNMPDeviceData((SNMPDeviceData) obj, SNMPDeviceData.SNMP_DEVICE_DATA_FLAVOR);
+			TransferableSNMPDeviceData dataSelection = new TransferableSNMPDeviceData(new SNMPDeviceData((SNMPDeviceData) obj), SNMPDeviceData.SNMP_DEVICE_DATA_FLAVOR);
 			clipboard.setContents(dataSelection, owner);
 		} else if (obj instanceof List) {
 			List list = (List) obj;
@@ -42,7 +43,11 @@ public class ClipboardUtils {
 					StringSelection stringSelection = new StringSelection( str.toString() );
 					clipboard.setContents( stringSelection, owner );
 				} else if(first instanceof SNMPDeviceData) {
-					TransferableSNMPDeviceData dataSelection = new TransferableSNMPDeviceData((List<SNMPDeviceData>) obj, SNMPDeviceData.SNMP_DEVICE_DATA_FLAVOR);
+					List<SNMPDeviceData> listCopy = new ArrayList<SNMPDeviceData>();
+					for(SNMPDeviceData d: (List<SNMPDeviceData>) obj) {
+						listCopy.add(new SNMPDeviceData(d));
+					}
+					TransferableSNMPDeviceData dataSelection = new TransferableSNMPDeviceData(listCopy, SNMPDeviceData.SNMP_DEVICE_DATA_FLAVOR);
 					clipboard.setContents(dataSelection, owner);
 				}
 			}

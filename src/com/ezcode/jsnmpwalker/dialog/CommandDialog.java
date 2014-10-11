@@ -128,7 +128,7 @@ public class CommandDialog extends JDialog  {
 		//cancelButt.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_C, 0), "Cancel");
 		//cancelButt.getActionMap().put("Cancel", new ButtonAction(this, cancelButt));
 		
-		setSize(500, 350);
+		setSize(500, 420);
 		setLocationRelativeTo(null);
 	}
 	

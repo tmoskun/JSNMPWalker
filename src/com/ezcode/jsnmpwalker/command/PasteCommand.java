@@ -16,6 +16,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
 import com.ezcode.jsnmpwalker.SNMPSessionFrame;
+import com.ezcode.jsnmpwalker.data.SNMPDeviceData;
 import com.ezcode.jsnmpwalker.panel.SNMPTreePanel;
 import com.ezcode.jsnmpwalker.utils.ClipboardUtils;
 
@@ -44,8 +45,15 @@ public class PasteCommand extends TreeCommand {
 				 if(obj instanceof List) {
 					 _copyData = ((List) obj).toArray();
 				 } else if(obj instanceof String) {
-					 _copyData = ((String) obj).split("\\r?\\n");
-					 //_copyData = ((String) obj).split(",");
+					 if(paths != null && paths.length > 0 && paths[0].getPathCount() == SNMPTreePanel.IP_NODE) {
+						 String[] copyDataStr = ((String) obj).split("\\r?\\n");
+						 _copyData = new Object[copyDataStr.length];
+						  for(int i = 0; i < copyDataStr.length; i++) {
+							  _copyData[i] = new SNMPDeviceData((String) copyDataStr[i]);
+						  }
+					 } else {
+						 _copyData = ((String) obj).split("\\r?\\n");
+					 }
 				 }
 			 }
 		} else {

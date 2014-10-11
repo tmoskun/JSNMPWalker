@@ -11,6 +11,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 
 import javax.swing.BorderFactory;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -27,7 +28,10 @@ import com.ezcode.jsnmpwalker.utils.PanelUtils;
 
 public class SNMPSecurityPanel extends JPanel {
     final private SNMPOptionModel _optionModel;
+    final private JTextField _engineid;
+    final private JCheckBox _enableEngineDiscovery;
 	final private JTextField _name;
+	final private JTextField _context;
 	final private JComboBox _level;
 	final private JTextField _authPass;
 	final private JComboBox _authType;
@@ -40,6 +44,29 @@ public class SNMPSecurityPanel extends JPanel {
 		setLayout(new SpringLayout());
 		setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		
+		JLabel engineidLabel = new JLabel("Engine ID: ", JLabel.TRAILING);
+		add(engineidLabel);
+		_engineid = new SecurityTextField(_optionModel.get(SNMPOptionModel.ENGINE_ID_KEY));
+		_engineid.setPreferredSize(PanelUtils.FIELD_DIM);
+		add(_engineid);
+		engineidLabel.setLabelFor(_engineid);
+		_engineid.addMouseListener(new FieldListener(_engineid, fieldPopupListener));
+		_engineid.getDocument().addDocumentListener(new OptionFieldListener(_optionModel, _engineid, SNMPOptionModel.ENGINE_ID_KEY));
+		
+		//to fill up the cell
+		JLabel empty = new JLabel("");
+		add(empty);
+		_enableEngineDiscovery = new JCheckBox("Enable Engine Discovery", Boolean.valueOf(_optionModel.get(SNMPOptionModel.ENABLE_ENGINE_DISCOVERY_KEY)));
+		add(_enableEngineDiscovery);
+		_enableEngineDiscovery.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				boolean isSelected = _enableEngineDiscovery.isSelected();
+				_engineid.setEnabled(!isSelected);
+				_optionModel.put(SNMPOptionModel.ENABLE_ENGINE_DISCOVERY_KEY, String.valueOf(isSelected));
+			}
+		});
+		_engineid.setEnabled(!_enableEngineDiscovery.isSelected());
+		
 		JLabel nameLabel = new JLabel("Security Name: ", JLabel.TRAILING);
 		add(nameLabel);
 		_name = new SecurityTextField(_optionModel.get(SNMPOptionModel.SECURITY_NAME_KEY));
@@ -49,7 +76,16 @@ public class SNMPSecurityPanel extends JPanel {
 		_name.addMouseListener(new FieldListener(_name, fieldPopupListener));
 		_name.getDocument().addDocumentListener(new OptionFieldListener(_optionModel, _name, SNMPOptionModel.SECURITY_NAME_KEY));
 		
-	    JLabel levelLabel = new JLabel("Security Level: ", JLabel.TRAILING);
+	    JLabel contextLabel = new JLabel("Context (optional): ", JLabel.TRAILING);
+	    add(contextLabel);
+	    _context = new SecurityTextField(_optionModel.get(SNMPOptionModel.CONTEXT_NAME_KEY));
+	    _context.setPreferredSize(PanelUtils.FIELD_DIM);
+	    add(_context);
+	    contextLabel.setLabelFor(_context);
+	    _context.addMouseListener(new FieldListener(_context, fieldPopupListener));
+	    _context.getDocument().addDocumentListener(new OptionFieldListener(_optionModel, _context, SNMPOptionModel.CONTEXT_NAME_KEY));
+		
+		JLabel levelLabel = new JLabel("Security Level: ", JLabel.TRAILING);
 	    add(levelLabel);
 	    _level = new JComboBox(SNMPOptionModel.SECURITY_LEVELS);
 	    _level.setSelectedItem(_optionModel.get(SNMPOptionModel.SECURITY_LEVEL_KEY));
@@ -62,7 +98,7 @@ public class SNMPSecurityPanel extends JPanel {
 			}
 	    });
 	    
-	    JLabel authPassLabel = new JLabel("Authentication Passphrase: ", JLabel.TRAILING);
+	    JLabel authPassLabel = new JLabel("Auth Passphrase: ", JLabel.TRAILING);
 	    add(authPassLabel);
 	    _authPass = new SecurityTextField(_optionModel.get(SNMPOptionModel.AUTH_PASSPHRASE_KEY));
 	    _authPass.setPreferredSize(PanelUtils.FIELD_DIM);
@@ -97,7 +133,7 @@ public class SNMPSecurityPanel extends JPanel {
 	    _privType.addActionListener(new OptionComboListener(_optionModel, SNMPOptionModel.PRIV_TYPE_KEY));
 	    
 	    SpringUtilities.makeCompactGrid(this, //parent
-	            6, 2,
+	            9, 2,
 	            5, 5,  //initX, initY
 	            10, 10); //xPad, yPad
 	    

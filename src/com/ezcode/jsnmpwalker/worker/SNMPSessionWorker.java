@@ -12,8 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.SwingWorker;
 
@@ -56,7 +54,7 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	//private BlockingQueue<String> _queue;
 	private Queue _queue;
 	private SNMPTreeData _treeData;
-	private Map<String, String> _options;
+	private OctetString _context;
 	
 	private AbstractTarget _target;
 	private ResponseListener _listener;
@@ -96,6 +94,8 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 		
 		if(_version == SnmpConstants.version3) {
 			try {
+				boolean enableEngineDiscovery = Boolean.valueOf(options.get(SNMPOptionModel.ENABLE_ENGINE_DISCOVERY_KEY));
+				OctetString engineID = enableEngineDiscovery ? null : new OctetString(options.get(SNMPOptionModel.ENGINE_ID_KEY));
 				OctetString securityName = new OctetString(options.get(SNMPOptionModel.SECURITY_NAME_KEY));
 				int securityLevel = SNMPOptionModel.getSecurityLevel(options.get(SNMPOptionModel.SECURITY_LEVEL_KEY));
 				_target = new UserTarget();
@@ -106,6 +106,8 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 				_target.setSecurityLevel(securityLevel);
 				_target.setSecurityName(securityName);
 				
+				String contextStr = options.get(SNMPOptionModel.CONTEXT_NAME_KEY);
+				_context = (contextStr == null || contextStr.length() == 0) ? null : new OctetString(contextStr);
 
 				OctetString authPass = null; 
 				OctetString privPass = null;
@@ -125,7 +127,14 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 				   		
 				UsmUser user = new UsmUser(securityName, authType, authPass, privType, privPass);
 				// add user to the USM
-				_snmp.getUSM().addUser(user.getSecurityName(), user);
+				USM usm = _snmp.getUSM();
+				usm.addUser(user.getSecurityName(), user);
+				//_snmp.getUSM().setLocalEngine(localEngineID, engineBoots, engineTime);
+				if(enableEngineDiscovery) {
+					usm.setEngineDiscoveryEnabled(true);
+				} else {
+					usm.setLocalEngine(engineID, 0, 0);
+				}
 			} catch (IllegalArgumentException ex) {
 				System.out.println("Illegal arguments");
 				ex.printStackTrace();
@@ -233,7 +242,7 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	}
 	
 	public void getBulk(String oid) {
-		PDU pdu = PDUforVersion.getPDU(_version);
+		PDU pdu = PDUforVersion.getPDU(_version, _context);
 		pdu.add(new VariableBinding(new OID(oid)));
 		pdu.setType(PDU.GETBULK);
 		pdu.setMaxRepetitions(16);
@@ -245,7 +254,7 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	}
 	
 	public void get(List<String> oids) {
-		PDU pdu = PDUforVersion.getPDU(_version);
+		PDU pdu = PDUforVersion.getPDU(_version, _context);
 		for (String oid: oids) {
 			pdu.add(new VariableBinding(new OID(oid)));
 		}
@@ -257,7 +266,7 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	}
 	
 	public void getNext(List<String> oids) {
-		PDU pdu = PDUforVersion.getPDU(_version);
+		PDU pdu = PDUforVersion.getPDU(_version, _context);
 		for (String oid: oids) {
 			pdu.add(new VariableBinding(new OID(oid)));
 		}
@@ -273,7 +282,7 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	}
 	
 	private Integer32 walkCore(String oid) {
-		PDU pdu = PDUforVersion.getPDU(_version);
+		PDU pdu = PDUforVersion.getPDU(_version, _context);
 		pdu.add(new VariableBinding(new OID(oid)));
 		pdu.setType(PDU.GETNEXT);
 		Integer32 reqId = new Integer32(_snmp.getNextRequestID());
@@ -332,13 +341,16 @@ public class SNMPSessionWorker extends SwingWorker<Object, Object> {
 	
 	private static class PDUforVersion {
 		
-		public static PDU getPDU(int version) {
+		public static PDU getPDU(int version, OctetString context) {
 			if(version == SnmpConstants.version1) {
 				return new PDU();
 			} else if(version == SnmpConstants.version2c) {
 				return new PDU();
 			} else if(version == SnmpConstants.version3) {
-				return new ScopedPDU();
+				ScopedPDU pdu = new ScopedPDU();
+				if(context != null)
+					pdu.setContextName(context);
+				return pdu;
 			} else {
 				return new PDU();
 			}

@@ -87,10 +87,16 @@ public class SNMPOptionEditPanel extends JPanel {
 	}
 	
 	private JPanel getGeneralPanel() {
-		JPanel panel = new JPanel(new SpringLayout());
+		JPanel panel = new JPanel(new BorderLayout());
+		
+		JPanel topPanel = new JPanel(new SpringLayout());
+	
 		final SNMPCommunityPanel commPanel = new SNMPCommunityPanel(_optionModel, _treePanel.getFieldPopupListener());
-		panel.add(commPanel);
-		panel.add(new SNMPVersionPanel(_optionModel, new ActionListener() {
+		
+		topPanel.add(commPanel);
+
+		//JPanel bottomPanel = new JPanel(new BorderLayout());
+		topPanel.add(new SNMPVersionPanel(_optionModel, new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -100,11 +106,13 @@ public class SNMPOptionEditPanel extends JPanel {
 				commPanel.showCommunity(version);
 			}
 		}));
-		panel.add(new SNMPOptionPanel(_optionModel));
-	    SpringUtilities.makeCompactGrid(panel, //parent
+		topPanel.add(new SNMPOptionPanel(_optionModel));
+	    SpringUtilities.makeCompactGrid(topPanel, //parent
                 3, 1,
                 5, 5,  //initX, initY
                 10, 10); //xPad, yPad
+
+		panel.add(topPanel, BorderLayout.NORTH);
 	
 		return panel; 
 	}

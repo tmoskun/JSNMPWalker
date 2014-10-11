@@ -19,6 +19,8 @@ import org.snmp4j.security.PrivDES;
 import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.OID;
 
+import com.ezcode.jsnmpwalker.utils.PanelUtils;
+
 
 public class SNMPOptionModel extends Hashtable<String, String> {
 	public static final String COMMUNITY_KEY = "community";
@@ -31,6 +33,9 @@ public class SNMPOptionModel extends Hashtable<String, String> {
 	public static final String PRIV_TYPE_KEY = "priv_type";
 	public static final String AUTH_PASSPHRASE_KEY = "auth_passphrase";
 	public static final String SECURITY_NAME_KEY = "security_name";
+	public static final String CONTEXT_NAME_KEY = "context_name";
+	public static final String ENGINE_ID_KEY = "engine_id";
+	public static final String ENABLE_ENGINE_DISCOVERY_KEY = "enable_engine_discovery";
 	public static final String PRIV_PASSPHRASE_KEY = "priv_passphrase";
 	
 	public static final String SNMP_VERSION_1 = "1";
@@ -71,6 +76,27 @@ public class SNMPOptionModel extends Hashtable<String, String> {
 		this.putAll(options);
 	}
 	
+	@Override
+	public String get(Object key) {
+		//defaults
+		if(key.equals(ENABLE_ENGINE_DISCOVERY_KEY) && super.get(key) == null) {
+			return String.valueOf(true);
+		}
+		return super.get(key);
+	}
+	@Override
+	public String put(String key, String value) {
+		if(key.equals(ENGINE_ID_KEY)) {
+			if(value.matches(PanelUtils.HEX_WITHCOL_REGEX)) {
+				String[] arr = value.split(":");
+				value = "0x";
+				for(String str: arr) {
+					value += str;
+				}
+			}
+		}
+		return super.put(key, value);
+	}
 	
 	public void setTitle(String title, String value) {
 		_title_to_option_key.put(title, value);

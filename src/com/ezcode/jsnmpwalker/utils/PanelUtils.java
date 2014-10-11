@@ -50,6 +50,9 @@ public class PanelUtils {
 	public static final String TEXT_SEARCH = "Search";
 	public static final String TEXT_STOP = "Stop";
 	
+	public static final String HEX_REGEX = "0x([0-9a-f][0-9a-f])+";
+	public static final String HEX_WITHCOL_REGEX = "[0-9a-f][0-9a-f](:[0-9a-f][0-9a-f])*";
+	
 	public static boolean validate(Component parent, String method, SNMPDeviceData deviceData, Collection<String> oids) {
 		return validate(parent, method, deviceData, oids, null);
 	}
@@ -92,12 +95,21 @@ public class PanelUtils {
 			appendWithLineBreak(message, "Number of retries is empty");
 		}
 		if(SNMPOptionModel.isVersion3(optionModel)) {
+			boolean enableEngineDiscovery = Boolean.valueOf(optionModel.get(SNMPOptionModel.ENABLE_ENGINE_DISCOVERY_KEY));
+			String engineID = optionModel.get(SNMPOptionModel.ENGINE_ID_KEY);
 			String securityName = optionModel.get(SNMPOptionModel.SECURITY_NAME_KEY);
 			String securityLevel = optionModel.get(SNMPOptionModel.SECURITY_LEVEL_KEY);
 			String authPass = optionModel.get(SNMPOptionModel.AUTH_PASSPHRASE_KEY);
 			String authType = optionModel.get(SNMPOptionModel.AUTH_TYPE_KEY);
 			String privPass = optionModel.get(SNMPOptionModel.PRIV_PASSPHRASE_KEY);
 			String privType = optionModel.get(SNMPOptionModel.PRIV_TYPE_KEY);
+			if(!enableEngineDiscovery) {
+				if (engineID == null || engineID.length() == 0) {
+					appendWithLineBreak(message, "Engine ID is empty");
+				} else if(!engineID.matches(HEX_REGEX) && !engineID.matches(HEX_WITHCOL_REGEX)){
+					appendWithLineBreak(message, "Bad Engine ID format");
+				}
+			}
 			if(securityName == null || securityName.length() == 0) {
 				appendWithLineBreak(message, "Security name is empty");
 			}

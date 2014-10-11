@@ -61,7 +61,9 @@ public abstract class AbstractSNMPDropTarget extends DropTarget {
 		if(obj != null) {
 			if(obj instanceof InetAddress) {
 				return new SNMPDeviceData(PanelUtils.formatData(obj));
-			} 
+			} else if(obj instanceof SNMPDeviceData) {
+				return new SNMPDeviceData((SNMPDeviceData)obj);
+			}
 		}
 		return obj;
 	}
