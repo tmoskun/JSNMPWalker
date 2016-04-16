@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=JSNMPWalker
+Comment=Run SNMP sessions
+Exec=jsnmpwalker
+Icon=jsnmpwalker
+Terminal=true
+Type=Application
+Categories=GNOME;Application;Development;
+StartupNotify=true
