@@ -1,8 +1,0 @@
-#!/bin/sh
-
-export JSNMPWALKER_HOME="/usr/local/lib/jsnmpwalker"
-cd $JSNMPWALKER_HOME
-app=$(find . -type f  -name "JSNMPWalker*.jar")
-echo "Starting JSNMPWalker..."
-java -jar $app
-echo "JSNMPWalker stopped"
