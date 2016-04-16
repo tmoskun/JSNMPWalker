@@ -18,9 +18,6 @@ if [ "x$app" = "x" ];then
 	echo "The .jar file is not found. Would you like to compile the application Y/N [Y]?"
 	read compile
 	if [ $compile != 'Y' ] && [ $compile != 'y' ]; then exit 1; fi
-else
-	echo "There is already a .jar file in the directory. Would you like to recompile the application Y/N [N]?"
-	read compile
 fi
 if [ $compile = 'Y' ] || [ $compile = 'y' ]; then
 	ant=$(which node 2>/dev/null)
